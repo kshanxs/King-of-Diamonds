@@ -62,12 +62,21 @@
     pointer-events: none;
   }
   
+  /* Touch-friendly interactions */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px]; /* Apple's recommended minimum touch target */
+  }
+  
   .glass-button {
     @apply backdrop-blur-sm bg-white/20 hover:bg-white/30 border border-white/30 rounded-xl px-6 py-3 text-white font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg;
+    touch-action: manipulation; /* Prevents zoom on double-tap */
+    -webkit-tap-highlight-color: transparent; /* Removes tap highlight on mobile */
   }
   
   .glass-input {
     @apply backdrop-blur-sm bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/50 focus:bg-white/20 focus:border-white/40 transition-all duration-300;
+    -webkit-appearance: none; /* Removes iOS default styling */
+    font-size: 16px; /* Prevents zoom on iOS when focused */
   }
   
   .number-button {
@@ -84,6 +93,27 @@
   
   .animate-glow {
     animation: glow 2s ease-in-out infinite alternate;
+  }
+  
+  /* Accessibility improvements */
+  .glass-input:focus {
+    outline: 2px solid rgba(59, 130, 246, 0.5);
+    outline-offset: 2px;
+  }
+  
+  .glass-button:focus-visible {
+    outline: 2px solid rgba(59, 130, 246, 0.7);
+    outline-offset: 2px;
+  }
+  
+  /* Reduced motion for users who prefer it */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-float,
+    .animate-glow,
+    .glass-button {
+      animation: none;
+      transition: none;
+    }
   }
 }
 
@@ -108,4 +138,16 @@
 
 ::-webkit-scrollbar-thumb {
   @apply bg-white/30 rounded-full hover:bg-white/50;
+}
+
+/* Mobile optimizations for better performance */
+@media (max-width: 768px) {
+  body {
+    background-attachment: scroll; /* Better performance on mobile */
+    background-size: 40px 40px, 40px 40px, 40px 40px, cover; /* Smaller patterns */
+  }
+  
+  body::before {
+    background-size: 60px 60px; /* Smaller texture pattern */
+  }
 }

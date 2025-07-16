@@ -1,0 +1,221 @@
+# 🚀 King of Diamonds Backend - Production-Ready .gitignore 💎
+
+# ===========================
+# 📦 Dependencies & Modules
+# ===========================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# ===========================
+# 🌍 Environment Configuration
+# ===========================
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.staging
+.env.production
+
+# Configuration files with secrets
+config/production.json
+config/staging.json
+config/local.json
+
+# ===========================
+# 🔐 Security & Authentication
+# ===========================
+# SSL certificates
+ssl/
+certificates/
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+
+# JWT secrets
+jwt-secrets/
+auth-keys/
+
+# Database credentials
+database.env
+db-config.json
+
+# ===========================
+# 📊 Database Files
+# ===========================
+*.db
+*.sqlite
+*.sqlite3
+database/
+db-data/
+migrations/temp/
+backup/
+
+# MongoDB data directories
+data/
+mongo-data/
+
+# Redis dumps
+dump.rdb
+
+# ===========================
+# 📝 Logs & Monitoring
+# ===========================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+server.log
+access.log
+error.log
+combined.log
+exceptions.log
+rejections.log
+
+# PM2 logs
+.pm2/
+pm2.log
+pm2-dev.log
+
+# Winston logs
+winston/
+
+# Application monitoring
+newrelic_agent.log
+.newrelic/
+
+# ===========================
+# 🔄 Runtime & Process Files
+# ===========================
+*.pid
+*.pid.lock
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# NYC test coverage
+.nyc_output
+
+# ===========================
+# 📁 File Storage & Uploads
+# ===========================
+uploads/
+public/uploads/
+static/uploads/
+temp-uploads/
+user-uploads/
+
+# Session storage
+sessions/
+.sessions/
+
+# Cache directories
+.cache/
+.parcel-cache/
+.socket-cache/
+
+# ===========================
+# 🚀 Deployment & Build
+# ===========================
+# Build outputs
+build/
+dist/
+out/
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+
+# Deployment scripts with sensitive data
+deploy.sh
+deploy-prod.sh
+server-setup.sh
+
+# Process managers
+ecosystem.config.js
+
+# ===========================
+# 🔧 Development Tools
+# ===========================
+# IDE files
+.vscode/settings.json
+.vscode/launch.json
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+.temp/
+
+# ===========================
+# 🧪 Testing
+# ===========================
+test-results/
+screenshots/
+videos/
+test-reports/
+
+# Jest
+jest-coverage/
+
+# ===========================
+# 📡 Socket.io & WebSocket
+# ===========================
+socket-logs/
+websocket-cache/
+
+# ===========================
+# 🔍 Analytics & Metrics
+# ===========================
+analytics/
+metrics/
+performance-logs/
+
+# ===========================
+# 💾 Backup Files
+# ===========================
+*.bak
+*.backup
+*.old
+backups/
+
+# ===========================
+# 🌐 CDN & Static Assets
+# ===========================
+public/static/generated/
+public/assets/generated/
+
+# ===========================
+# 🎯 Game-Specific
+# ===========================
+# Game analytics
+game-stats/
+player-data/
+room-data/
+
+# Bot training data (if any)
+bot-training/
+ai-models/

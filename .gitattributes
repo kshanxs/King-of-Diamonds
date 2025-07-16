@@ -1,0 +1,74 @@
+# 👑 King of Diamonds - Git Attributes Configuration 💎
+
+# ===========================
+# 🔄 Line Ending Normalization
+# ===========================
+* text=auto
+
+# Source code files
+*.js text eol=lf
+*.jsx text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.json text eol=lf
+*.css text eol=lf
+*.scss text eol=lf
+*.html text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+
+# ===========================
+# 🔧 Configuration Files
+# ===========================
+*.gitignore text eol=lf
+*.gitattributes text eol=lf
+.editorconfig text eol=lf
+.eslintrc* text eol=lf
+.prettierrc* text eol=lf
+package.json text eol=lf
+package-lock.json text eol=lf
+tsconfig.json text eol=lf
+vite.config.* text eol=lf
+
+# ===========================
+# 📜 Shell Scripts
+# ===========================
+*.sh text eol=lf
+*.bash text eol=lf
+
+# ===========================
+# 🚫 Binary Files (No Text Processing)
+# ===========================
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.svg binary
+*.woff binary
+*.woff2 binary
+*.eot binary
+*.ttf binary
+*.otf binary
+
+# ===========================
+# 📊 Generated Files
+# ===========================
+# Treat as generated files (show reduced diffs)
+package-lock.json linguist-generated=true
+yarn.lock linguist-generated=true
+*.min.js linguist-generated=true
+*.min.css linguist-generated=true
+
+# ===========================
+# 🎮 Language Detection Override
+# ===========================
+# Ensure proper language detection for GitHub
+*.js linguist-language=JavaScript
+*.ts linguist-language=TypeScript
+*.tsx linguist-language=TypeScript
+*.jsx linguist-language=JavaScript
+README.md linguist-documentation
+GAME_RULES.md linguist-documentation
+AI_SYSTEM_README.md linguist-documentation

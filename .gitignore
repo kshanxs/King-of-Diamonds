@@ -1,0 +1,234 @@
+# 👑 King of Diamonds - Git Ignore Configuration 💎
+
+# ===========================
+# 📦 Node.js Dependencies
+# ===========================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ===========================
+# 🏗️ Build Outputs
+# ===========================
+# Frontend build outputs
+frontend/dist/
+frontend/dist-ssr/
+frontend/build/
+
+# Backend build outputs (if any)
+backend/dist/
+backend/build/
+
+# ===========================
+# 📝 Logs & Runtime Files
+# ===========================
+logs/
+*.log
+*.log.*
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# ===========================
+# 🔐 Environment & Config
+# ===========================
+.env
+.env.*
+!.env.example
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Runtime configuration
+config/local.json
+config/production.json
+
+# ===========================
+# 🖥️ OS Generated Files
+# ===========================
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Icon?
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.tmp
+*.temp
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# ===========================
+# 🔧 Editor & IDE Files
+# ===========================
+# VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+
+# JetBrains IDEs
+.idea/
+*.swp
+*.swo
+*~
+
+# Sublime Text
+*.tmlanguage.cache
+*.tmPreferences.cache
+*.stTheme.cache
+*.sublime-workspace
+*.sublime-project
+
+# Vim
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+[._]s[a-rt-v][a-z]
+[._]ss[a-gi-z]
+[._]sw[a-p]
+
+# ===========================
+# 🎮 Game-Specific Files
+# ===========================
+# Game data and saves (if implemented)
+game-data/
+saves/
+replays/
+
+# User-generated content
+uploads/
+user-files/
+
+# ===========================
+# 🔒 Security & Sensitive Data
+# ===========================
+# API Keys and secrets
+*.key
+*.pem
+*.crt
+*.csr
+config/secrets.js
+secrets.json
+
+# Database files (if using local databases)
+*.db
+*.sqlite
+*.sqlite3
+
+# ===========================
+# 📊 Coverage & Testing
+# ===========================
+# Coverage reports
+coverage/
+*.lcov
+.nyc_output/
+
+# Test results
+test-results/
+junit.xml
+
+# ===========================
+# 🚀 Deployment & CI/CD
+# ===========================
+# Docker
+Dockerfile.prod
+docker-compose.override.yml
+
+# Deployment artifacts
+deploy/
+.deploy/
+
+# ===========================
+# 🔄 Temporary & Cache Files
+# ===========================
+# npm cache
+.npm
+.eslintcache
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# Cache directories
+.cache/
+.parcel-cache/
+
+# ===========================
+# 📱 Mobile & Platform Specific
+# ===========================
+# React Native
+*.orig.*
+web-build/
+
+# ===========================
+# 🔧 Tool-specific
+# ===========================
+# TypeScript
+*.tsbuildinfo
+
+# Webpack
+.webpack/
+
+# ESLint
+.eslintcache
+
+# Stylelint
+.stylelintcache
+
+# Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Storybook build outputs
+storybook-static
+
+# ===========================
+# 🎯 Project-Specific Exclusions
+# ===========================
+# Keep important config files
+!.gitignore
+!.gitattributes
+!README.md
+!package.json
+!package-lock.json
+
+# Keep documentation
+!GAME_RULES.md
+!AI_SYSTEM_README.md
+!DEVELOPMENT.md
+
+# Keep necessary config
+!.vscode/settings.json
+!.vscode/extensions.json

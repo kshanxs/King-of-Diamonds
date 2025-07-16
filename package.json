@@ -1,0 +1,19 @@
+{
+  "name": "balance-of-diamonds",
+  "version": "1.0.0",
+  "description": "Multiplayer strategy game inspired by Alice in Borderland",
+  "scripts": {
+    "install-all": "npm install --prefix backend && npm install --prefix frontend",
+    "dev": "concurrently \"npm run backend\" \"npm run frontend\"",
+    "backend": "cd backend && node server.js",
+    "frontend": "cd frontend && npm run dev",
+    "build": "cd frontend && npm run build",
+    "start": "./start-game.sh"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "keywords": ["game", "multiplayer", "react", "nodejs", "websockets"],
+  "author": "Game Developer",
+  "license": "MIT"
+}

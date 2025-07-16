@@ -1,0 +1,254 @@
+# 👑 King of Diamonds - Multiplayer Strategy Game 💎
+
+A web-based multiplayer game inspired by "King of Diamonds" from Alice in Borderland, combining psychological strategy with mathematical precision and number-based logic. 🎮✨
+
+## 🎮 Game Overview
+
+---mpete to be the last survivor by strategically selecting numbers each round. The game features dynamic rules that activate as players are eliminated, creating an evolving challenge that requires adaptability, cunning, and mathematical thinking. Face off against intelligent AI opponents named after playing cards in this battle of wits.
+
+## 🏗️ Project Structure
+
+```
+King of Diamonds/
+├── backend/          # Node.js + Express + Socket.io server
+├── frontend/         # React + TypeScript + Tailwind CSS client
+├── GAME_RULES.md     # Detailed game rules and mechanics
+└── README.md         # This file
+```
+
+## 🚀 Quick Start
+
+### 📋 Prerequisites
+
+- 📦 Node.js (v18+ recommended)
+- 📦 npm or yarn
+
+### 💾 Installation & Setup
+
+1. **📥 Clone the Repository**
+
+   ```bash
+   git clone <repository-url>
+   cd "King of Diamonds"
+   ```
+
+2. **🔧 Install Backend Dependencies**
+
+   ```bash
+   cd backend
+   npm install
+   ```
+
+3. **🔧 Install Frontend Dependencies**
+
+   ```bash
+   cd frontend
+   npm install
+   ```
+
+4. **🚀 Start the Backend Server**
+
+   ```bash
+   cd backend
+   node server.js
+   ```
+
+   The server will start on `http://localhost:5001` 🌐
+
+5. **🎨 Start the Frontend Development Server**
+
+   ```bash
+   cd frontend
+   npm run dev
+   ```
+
+   The client will start on `http://localhost:5173` 🌐
+
+6. **🌐 Open your browser** and navigate to `http://localhost:5173`
+
+## 🎯 Game Features
+
+### 🎮 Game Modes
+
+- **Solo Mode**: Play against 4 intelligent AI opponents with unique playing card personalities
+- **Multiplayer Mode**: Create rooms and play with friends (up to 5 players)
+- **Auto-fill**: Rooms automatically fill with AI bots to maintain 5-player games
+
+### 🧠 AI Opponents
+
+Face off against strategically named AI opponents with advanced intelligence:
+
+- **Kings**: King of Hearts, King of Spades, King of Diamonds, King of Clubs
+- **Queens**: Queen of Diamonds, Queen of Hearts, Queen of Clubs, Queen of Spades  
+- **Jacks**: Jack of Hearts, Jack of Diamonds, Jack of Spades, Jack of Clubs
+- **Aces**: Ace of Hearts, Ace of Diamonds, Ace of Spades, Ace of Clubs
+
+Each bot has unique personalities and strategic behaviors:
+- **Kings**: Aggressive risk-takers who attempt bold gambits
+- **Queens**: Balanced calculators with strong mathematical focus
+- **Jacks**: Unpredictable wildcards who break patterns
+- **Aces**: Mathematical precision experts with conservative play
+
+*For detailed AI system documentation, see [backend/AI_SYSTEM_README.md](backend/AI_SYSTEM_README.md)*
+
+### ⚡ Real-time Features
+
+- **Live Synchronization**: Real-time updates across all players
+- **Smart Round Progression**: 10-second countdown with early start when all players ready
+- **Player Status Tracking**: See who's ready, who's choosing, who's left
+- **Copy Room Codes**: Easy room sharing with one-click copy
+
+### 🎨 Modern UI/UX
+
+- **Glassmorphism Design**: Beautiful, modern card-table aesthetic
+- **Playing Card Theme**: Card-inspired background and visual elements
+- **Responsive Design**: Works perfectly on desktop and mobile
+- **Real-time Animations**: Smooth transitions and visual feedback
+
+## 🎲 Core Game Mechanics
+
+### Basic Rules
+
+1. **Choose a number** (0-100) within 60 seconds each round
+2. **Target calculation**: Average of all choices × 0.8
+3. **Winner**: Player closest to the target
+4. **Scoring**: Winner unchanged, others lose 1 point
+5. **Elimination**: Reach -10 points and you're out
+6. **Victory**: Last player standing wins
+
+### Progressive Rule System
+
+The game evolves as players are eliminated:
+
+- **Rule 1** (After 1 elimination): Duplicate number penalty
+- **Rule 2** (After 2 eliminations): Exact target bonus/penalty
+- **Rule 3** (After 3 eliminations): Zero-hundred gambit
+- **Always Active**: Timeout penalty (-2 points)
+
+*For detailed rules and strategies, see [GAME_RULES.md](GAME_RULES.md)*
+
+## 🛠️ Technology Stack
+
+### Frontend
+
+- **React 18** with TypeScript
+- **Tailwind CSS** for styling
+- **Socket.io Client** for real-time communication
+- **Vite** for fast development and building
+
+### Backend
+
+- **Node.js** with Express.js
+- **Socket.io** for WebSocket communication
+- **CORS** enabled for cross-origin requests
+- **UUID** for unique player and room identification
+
+### Development Tools
+
+- **TypeScript** for type safety
+- **ESLint** for code quality
+- **Hot reload** for rapid development
+
+## 📁 File Structure
+
+```
+King of Diamonds/
+├── backend/
+│   ├── server.js              # Main server file
+│   ├── package.json           # Backend dependencies
+│   ├── README.md             # Backend documentation
+│   └── AI_SYSTEM_README.md   # AI bot system documentation
+├── frontend/
+│   ├── src/
+│   │   ├── components/       # React components
+│   │   ├── services/         # API and Socket services
+│   │   ├── index.css         # Global styles
+│   │   └── main.tsx          # Entry point
+│   ├── index.html            # HTML template
+│   ├── package.json          # Frontend dependencies
+│   └── README.md             # Frontend documentation
+├── GAME_RULES.md             # Detailed game rules
+└── README.md                 # This file
+```
+
+## 🚀 Development
+
+### Running in Development Mode
+
+1. Start the backend server:
+
+   ```bash
+   cd backend
+   npm run dev  # or node server.js
+   ```
+
+2. Start the frontend development server:
+
+   ```bash
+   cd frontend
+   npm run dev
+   ```
+
+### Building for Production
+
+1. Build the frontend:
+
+   ```bash
+   cd frontend
+   npm run build
+   ```
+
+2. The backend can be deployed as-is with Node.js
+
+### Environment Configuration
+
+- **Backend Port**: Default 5001 (configurable via PORT environment variable)
+- **Frontend Dev Port**: Default 5173 (Vite default)
+- **CORS Origin**: Currently set to `http://localhost:5173`
+
+## 🎮 How to Play
+
+### Quick Start Guide
+
+1. **Enter your name** on the homepage
+2. **Choose game mode**:
+   - Click "Create Room" for solo play with AI opponents
+   - Or enter a room code to join friends
+3. **Wait for players** or start immediately with AI
+4. **Make strategic choices** each round
+5. **Survive elimination** and be the last player standing
+
+### Strategy Tips
+
+- **Early Game**: Play conservatively, choose numbers around 40-50
+- **Mid Game**: Adapt to active rules, avoid duplicates
+- **End Game**: Master the zero-hundred gambit for victory
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
+
+## 📄 License
+
+This project is open source and available under the [MIT License](LICENSE).
+
+## 🎯 Inspiration
+
+Inspired by the psychological strategy games from "Alice in Borderland," specifically the King of Diamonds game that combines mathematical precision with psychological warfare.
+
+## � Future Features
+
+- [ ] Spectator mode
+- [ ] Replay system
+- [ ] Advanced AI difficulty levels
+- [ ] Tournament brackets
+- [ ] Player statistics and rankings
+- [ ] Custom rule variations
+
+---
+
+**Ready to test your strategic mind? Enter the world of King of Diamonds and prove you have what it takes to survive!** 👑💎

@@ -1,0 +1,42 @@
+# 🚀 King of Diamonds - Development Docker Compose 💎
+
+version: '3.8'
+
+services:
+  # Frontend development service
+  frontend-dev:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - VITE_API_URL=http://localhost:5001
+    depends_on:
+      - backend-dev
+    networks:
+      - king-of-diamonds-dev
+
+  # Backend development service
+  backend-dev:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    ports:
+      - "5001:5001"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - PORT=5001
+    networks:
+      - king-of-diamonds-dev
+
+networks:
+  king-of-diamonds-dev:
+    driver: bridge

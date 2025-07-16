@@ -1,0 +1,560 @@
+// 🏠 King of Diamonds - Game Room Model 💎
+
+const { v4: uuidv4 } = require('uuid');
+const { BOT_NAMES, GAME_CONFIG, RULE_THRESHOLDS } = require('../config/constants');
+const BotAI = require('../services/BotAI');
+
+class GameRoom {
+  constructor(roomId, hostId, io) {
+    this.roomId = roomId;
+    this.hostId = hostId;
+    this.io = io; // Socket.io instance for emitting events
+    this.players = new Map();
+    this.gameState = 'waiting'; // waiting, countdown, playing, finished
+    this.currentRound = 0;
+    this.roundTimer = null;
+    this.countdownTimer = null;
+    this.roundHistory = [];
+    this.eliminatedCount = 0;
+    this.maxPlayers = GAME_CONFIG.MAX_PLAYERS;
+    this.minPlayers = GAME_CONFIG.MIN_PLAYERS;
+    this.roundTimeLimit = GAME_CONFIG.ROUND_TIME_LIMIT;
+    this.nextRoundTimer = null;
+    this.playersReady = new Set();
+    this.nextRoundDelay = GAME_CONFIG.NEXT_ROUND_DELAY;
+    
+    // Initialize Bot AI service
+    this.botAI = new BotAI();
+  }
+
+  /**
+   * Add a player to the room
+   * @param {string} playerId - Player ID
+   * @param {string} playerName - Player name
+   * @param {boolean} isBot - Whether the player is a bot
+   * @returns {boolean} Success status
+   */
+  addPlayer(playerId, playerName, isBot = false) {
+    // Count only non-left players for room capacity
+    const activePlayerCount = Array.from(this.players.values()).filter(p => !p.hasLeft).length;
+    if (activePlayerCount >= this.maxPlayers) return false;
+    
+    const player = {
+      id: playerId,
+      name: playerName,
+      score: 0,
+      isEliminated: false,
+      isBot: isBot,
+      hasLeft: false,
+      currentChoice: null,
+      hasChosenThisRound: false
+    };
+    
+    this.players.set(playerId, player);
+    return true;
+  }
+
+  /**
+   * Mark a player as left (disconnected) instead of removing them
+   * @param {string} playerId - Player ID to mark as left
+   * @returns {boolean} Whether room should be deleted
+   */
+  removePlayer(playerId) {
+    const player = this.players.get(playerId);
+    if (player && !player.isBot) {
+      // Only mark as left if game has started, otherwise remove completely
+      if (this.gameState === 'waiting') {
+        // Game hasn't started yet, remove player completely
+        this.players.delete(playerId);
+      } else {
+        // Game has started, mark as left to preserve in leaderboard
+        player.hasLeft = true;
+        player.hasChosenThisRound = false; // Reset their choice status
+      }
+      this.playersReady.delete(playerId); // Remove from ready set
+    } else {
+      // Remove bots completely (they can be recreated)
+      this.players.delete(playerId);
+    }
+    
+    // Check if only left players remain (or no players at all)
+    const activePlayers = Array.from(this.players.values()).filter(p => !p.hasLeft);
+    if (activePlayers.length === 0) {
+      return true; // Room should be deleted
+    }
+    return false;
+  }
+
+  /**
+   * Fill room with bot players
+   */
+  fillWithBots() {
+    // Count only non-left players for bot calculation
+    const activePlayerCount = Array.from(this.players.values()).filter(p => !p.hasLeft).length;
+    const botsNeeded = Math.max(0, this.maxPlayers - activePlayerCount);
+    
+    // Create a shuffled copy of bot names to ensure no duplicates
+    const availableBotNames = [...BOT_NAMES];
+    
+    // Shuffle the array using Fisher-Yates algorithm
+    for (let i = availableBotNames.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [availableBotNames[i], availableBotNames[j]] = [availableBotNames[j], availableBotNames[i]];
+    }
+    
+    for (let i = 0; i < botsNeeded; i++) {
+      const botId = uuidv4();
+      const botName = availableBotNames[i]; // Take from shuffled array
+      this.addPlayer(botId, botName, true);
+    }
+  }
+
+  /**
+   * Get currently active game rules
+   * @returns {Array} Array of active rule descriptions
+   */
+  getActiveRules() {
+    const rules = [];
+    rules.push("No input within time limit → Lose 2 points");
+    if (this.eliminatedCount >= RULE_THRESHOLDS.DUPLICATE_RULE) {
+      rules.push("Duplicate numbers → All choosing them lose 1 point");
+    }
+    if (this.eliminatedCount >= RULE_THRESHOLDS.PERFECT_TARGET_RULE) {
+      rules.push("Exact correct number → Other players lose 2 points");
+    }
+    if (this.eliminatedCount >= RULE_THRESHOLDS.ZERO_HUNDRED_RULE) {
+      rules.push("If one player chooses 0, another can win by choosing 100");
+    }
+    return rules;
+  }
+
+  /**
+   * Start the game
+   * @returns {boolean} Success status
+   */
+  startGame() {
+    const activePlayers = Array.from(this.players.values()).filter(p => !p.hasLeft);
+    if (activePlayers.length < this.minPlayers) return false;
+    
+    // Always fill with bots to have 5 players total
+    this.fillWithBots();
+    
+    this.gameState = 'countdown';
+    this.startCountdown();
+    return true;
+  }
+
+  /**
+   * Start game countdown
+   */
+  startCountdown() {
+    let countdown = 3;
+    this.countdownTimer = setInterval(() => {
+      this.io.to(this.roomId).emit('countdown', countdown);
+      countdown--;
+      
+      if (countdown < 0) {
+        clearInterval(this.countdownTimer);
+        this.gameState = 'playing';
+        this.startNewRound();
+      }
+    }, 1000);
+  }
+
+  /**
+   * Start a new round
+   */
+  startNewRound() {
+    this.currentRound++;
+    
+    // Clear any existing next round timer
+    if (this.nextRoundTimer) {
+      clearInterval(this.nextRoundTimer);
+      this.nextRoundTimer = null;
+    }
+    
+    // Reset player choices and ready states
+    this.players.forEach(player => {
+      player.currentChoice = null;
+      player.hasChosenThisRound = false;
+    });
+    this.playersReady.clear();
+
+    // Start round timer
+    let timeLeft = this.roundTimeLimit;
+    this.roundTimer = setInterval(() => {
+      this.io.to(this.roomId).emit('roundTimer', timeLeft);
+      timeLeft--;
+      
+      if (timeLeft < 0) {
+        clearInterval(this.roundTimer);
+        this.processRound();
+      }
+    }, 1000);
+
+    // Make bot choices with staggered delays
+    setTimeout(() => this.makeBotChoices(), 2000);
+
+    this.io.to(this.roomId).emit('newRound', {
+      round: this.currentRound,
+      activeRules: this.getActiveRules(),
+      players: Array.from(this.players.values()).map(p => ({
+        id: p.id,
+        name: p.name,
+        score: p.score,
+        isEliminated: p.isEliminated,
+        isBot: p.isBot,
+        hasLeft: p.hasLeft || false
+      }))
+    });
+
+    // Send initial choice count update
+    const activePlayers = Array.from(this.players.values()).filter(p => !p.isEliminated && !p.hasLeft);
+    const chosenCount = activePlayers.filter(p => p.hasChosenThisRound).length;
+    this.io.to(this.roomId).emit('choiceUpdate', {
+      chosenCount,
+      totalActivePlayers: activePlayers.length
+    });
+  }
+
+  /**
+   * Make choices for all bot players
+   */
+  makeBotChoices() {
+    const bots = Array.from(this.players.values()).filter(player => player.isBot && !player.isEliminated && !player.hasLeft);
+    
+    bots.forEach((player, index) => {
+      // Stagger bot choices with random delays
+      const delay = this.botAI.calculateResponseDelay();
+      
+      setTimeout(() => {
+        if (this.gameState === 'playing' && !player.hasChosenThisRound && !player.isEliminated && !player.hasLeft) {
+          const gameContext = this.createGameContext();
+          const choice = this.botAI.calculateBotChoice(player, gameContext);
+          this.makeChoice(player.id, choice);
+        }
+      }, delay);
+    });
+  }
+
+  /**
+   * Create game context for bot AI
+   * @returns {Object} Game context object
+   */
+  createGameContext() {
+    const activePlayers = Array.from(this.players.values()).filter(p => !p.isEliminated && !p.hasLeft);
+    return {
+      activeRules: this.getActiveRules(),
+      activePlayers: activePlayers,
+      roundHistory: this.roundHistory,
+      eliminatedCount: this.eliminatedCount,
+      currentRound: this.currentRound
+    };
+  }
+
+  /**
+   * Record a player's choice
+   * @param {string} playerId - Player ID
+   * @param {number} choice - Player's choice (0-100)
+   * @returns {boolean} Success status
+   */
+  makeChoice(playerId, choice) {
+    const player = this.players.get(playerId);
+    if (!player || player.isEliminated || player.hasLeft || player.hasChosenThisRound) return false;
+    
+    player.currentChoice = choice;
+    player.hasChosenThisRound = true;
+    
+    // Emit real-time choice update for all players (human and bot)
+    const activePlayers = Array.from(this.players.values()).filter(p => !p.isEliminated && !p.hasLeft);
+    const chosenCount = activePlayers.filter(p => p.hasChosenThisRound).length;
+    
+    this.io.to(this.roomId).emit('choiceUpdate', {
+      chosenCount,
+      totalActivePlayers: activePlayers.length,
+      lastPlayerName: player.isBot ? '🤖 Bot' : '👤 Player', // Anonymized
+      timestamp: Date.now()
+    });
+
+    console.log(`📊 Choice update sent: ${chosenCount}/${activePlayers.length} players have chosen in room ${this.roomId} (${player.isBot ? 'Bot' : 'Human'}: ${player.name})`);
+    
+    // Check if all non-eliminated AND non-left players have chosen
+    const allChosen = activePlayers.every(p => p.hasChosenThisRound);
+    
+    if (allChosen) {
+      clearInterval(this.roundTimer);
+      this.processRound();
+    }
+    
+    return true;
+  }
+
+  /**
+   * Process the current round results
+   */
+  processRound() {
+    const activePlayers = Array.from(this.players.values()).filter(p => !p.isEliminated && !p.hasLeft);
+    
+    // Apply timeout penalty for players who didn't choose
+    const timeoutPlayers = [];
+    activePlayers.forEach(player => {
+      if (!player.hasChosenThisRound) {
+        player.score -= GAME_CONFIG.TIMEOUT_PENALTY;
+        timeoutPlayers.push(player.name);
+        player.currentChoice = null; // Set to null for display purposes
+      }
+    });
+    
+    // Get only players who made choices for target calculation
+    const playersWithChoices = activePlayers.filter(p => p.hasChosenThisRound);
+    const choices = playersWithChoices.map(p => p.currentChoice);
+    
+    if (choices.length === 0) {
+      // No one made a choice, just apply timeout penalties and continue
+      this.recordTimeoutRound(timeoutPlayers);
+      return;
+    }
+    
+    const average = choices.reduce((sum, choice) => sum + choice, 0) / choices.length;
+    const target = average * 0.8;
+    
+    // Find closest to target (only among players who made choices)
+    let winner = null;
+    let minDistance = Infinity;
+    
+    playersWithChoices.forEach(player => {
+      const distance = Math.abs(player.currentChoice - target);
+      if (distance < minDistance) {
+        minDistance = distance;
+        winner = player;
+      }
+    });
+
+    this.applyGameRules(playersWithChoices, target, winner);
+    this.checkEliminations();
+    this.recordRoundResult(activePlayers, playersWithChoices, average, target, winner, timeoutPlayers);
+    this.checkGameEnd();
+  }
+
+  /**
+   * Apply game rules to players
+   * @param {Array} playersWithChoices - Players who made choices
+   * @param {number} target - Calculated target
+   * @param {Object} winner - Round winner
+   */
+  applyGameRules(playersWithChoices, target, winner) {
+    const activeRules = this.getActiveRules();
+    
+    // Rule: Duplicate numbers
+    if (activeRules.length >= 2) {
+      const choiceCounts = {};
+      playersWithChoices.forEach(player => {
+        const choice = player.currentChoice;
+        choiceCounts[choice] = (choiceCounts[choice] || 0) + 1;
+      });
+      
+      playersWithChoices.forEach(player => {
+        if (choiceCounts[player.currentChoice] > 1) {
+          player.score -= GAME_CONFIG.DUPLICATE_PENALTY;
+        }
+      });
+    }
+    
+    // Rule: Exact correct number
+    if (activeRules.length >= 3) {
+      const exactMatch = playersWithChoices.find(p => p.currentChoice === Math.round(target));
+      if (exactMatch) {
+        playersWithChoices.forEach(player => {
+          if (player.id !== exactMatch.id) {
+            player.score -= GAME_CONFIG.PERFECT_TARGET_PENALTY;
+          }
+        });
+      }
+    }
+    
+    // Rule: 0 and 100 rule
+    if (activeRules.length >= 4) {
+      const zeroPlayer = playersWithChoices.find(p => p.currentChoice === 0);
+      const hundredPlayer = playersWithChoices.find(p => p.currentChoice === 100);
+      
+      if (zeroPlayer && hundredPlayer) {
+        // Hundred player wins this rule
+        winner = hundredPlayer;
+      }
+    }
+    
+    // Apply losing points to non-winners who made choices
+    if (winner) {
+      playersWithChoices.forEach(player => {
+        if (player.id !== winner.id) {
+          player.score -= 1;
+        }
+      });
+    }
+  }
+
+  /**
+   * Check for player eliminations
+   */
+  checkEliminations() {
+    this.players.forEach(player => {
+      if (player.score <= GAME_CONFIG.ELIMINATION_SCORE && !player.isEliminated) {
+        player.isEliminated = true;
+        this.eliminatedCount++;
+      }
+    });
+  }
+
+  /**
+   * Record round result in history
+   * @param {Array} activePlayers - All active players
+   * @param {Array} playersWithChoices - Players who made choices
+   * @param {number} average - Average of choices
+   * @param {number} target - Calculated target
+   * @param {Object} winner - Round winner
+   * @param {Array} timeoutPlayers - Players who timed out
+   */
+  recordRoundResult(activePlayers, playersWithChoices, average, target, winner, timeoutPlayers) {
+    const roundResult = {
+      round: this.currentRound,
+      choices: activePlayers.map(p => ({ 
+        name: p.name, 
+        choice: p.currentChoice,
+        timedOut: !p.hasChosenThisRound
+      })),
+      average: playersWithChoices.length > 0 ? average : 0,
+      target: playersWithChoices.length > 0 ? target : 0,
+      winner: winner ? winner.name : 'No winner',
+      timeoutPlayers,
+      eliminatedThisRound: Array.from(this.players.values())
+        .filter(p => p.isEliminated && p.score === GAME_CONFIG.ELIMINATION_SCORE)
+        .map(p => p.name)
+    };
+    
+    this.roundHistory.push(roundResult);
+    
+    // Emit round results
+    this.io.to(this.roomId).emit('roundResult', {
+      ...roundResult,
+      players: Array.from(this.players.values()).map(p => ({
+        id: p.id,
+        name: p.name,
+        score: p.score,
+        isEliminated: p.isEliminated,
+        isBot: p.isBot,
+        hasLeft: p.hasLeft || false,
+        currentChoice: p.currentChoice
+      }))
+    });
+  }
+
+  /**
+   * Record timeout-only round
+   * @param {Array} timeoutPlayers - Players who timed out
+   */
+  recordTimeoutRound(timeoutPlayers) {
+    this.checkEliminations();
+
+    const roundResult = {
+      round: this.currentRound,
+      choices: [],
+      average: 0,
+      target: 0,
+      winner: 'No winner - All players timed out',
+      timeoutPlayers,
+      eliminatedThisRound: Array.from(this.players.values())
+        .filter(p => p.isEliminated && p.score <= GAME_CONFIG.ELIMINATION_SCORE)
+        .map(p => p.name)
+    };
+
+    this.roundHistory.push(roundResult);
+    this.checkGameEnd();
+    
+    // Emit round results
+    this.io.to(this.roomId).emit('roundResult', {
+      ...roundResult,
+      players: Array.from(this.players.values()).map(p => ({
+        id: p.id,
+        name: p.name,
+        score: p.score,
+        isEliminated: p.isEliminated,
+        isBot: p.isBot,
+        currentChoice: p.currentChoice
+      }))
+    });
+  }
+
+  /**
+   * Check if game should end
+   */
+  checkGameEnd() {
+    const remainingPlayers = Array.from(this.players.values()).filter(p => !p.isEliminated && !p.hasLeft);
+    
+    if (remainingPlayers.length <= 1) {
+      this.gameState = 'finished';
+      this.io.to(this.roomId).emit('gameFinished', {
+        winner: remainingPlayers[0]?.name || 'No winner',
+        finalScores: Array.from(this.players.values())
+      });
+    } else {
+      // Start next round countdown
+      this.startNextRoundCountdown();
+    }
+  }
+
+  /**
+   * Start countdown for next round
+   */
+  startNextRoundCountdown() {
+    this.playersReady.clear(); // Reset ready states
+    let countdown = this.nextRoundDelay;
+    
+    // Emit initial countdown
+    this.io.to(this.roomId).emit('nextRoundCountdown', countdown);
+    
+    this.nextRoundTimer = setInterval(() => {
+      countdown--;
+      this.io.to(this.roomId).emit('nextRoundCountdown', countdown);
+      
+      if (countdown <= 0) {
+        clearInterval(this.nextRoundTimer);
+        this.startNewRound();
+      }
+    }, 1000);
+  }
+
+  /**
+   * Mark player as ready for next round
+   * @param {string} playerId - Player ID
+   */
+  playerReady(playerId) {
+    this.playersReady.add(playerId);
+    
+    // Auto-mark all bots as ready when a human player is ready
+    const botPlayers = Array.from(this.players.values()).filter(p => !p.isEliminated && !p.hasLeft && p.isBot);
+    botPlayers.forEach(bot => {
+      this.playersReady.add(bot.id);
+    });
+    
+    // Check if all non-eliminated AND non-left players are ready
+    const activePlayers = Array.from(this.players.values()).filter(p => !p.isEliminated && !p.hasLeft);
+    const allReady = activePlayers.every(p => this.playersReady.has(p.id));
+    
+    // Emit ready status update to all players
+    const readyCount = this.playersReady.size;
+    const totalActive = activePlayers.length;
+    this.io.to(this.roomId).emit('readyUpdate', {
+      readyCount,
+      totalActive,
+      allReady
+    });
+    
+    if (allReady && this.nextRoundTimer) {
+      clearInterval(this.nextRoundTimer);
+      this.io.to(this.roomId).emit('nextRoundCountdown', 0); // Signal immediate start
+      setTimeout(() => this.startNewRound(), 100); // Small delay for smooth transition
+    }
+  }
+}
+
+module.exports = GameRoom;

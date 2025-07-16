@@ -4,6 +4,7 @@ export interface Player {
   score: number;
   isEliminated: boolean;
   isBot: boolean;
+  hasLeft?: boolean;
   currentChoice?: number;
   hasChosenThisRound?: boolean;
 }
@@ -40,8 +41,14 @@ export interface SocketEvents {
   newRound: (data: { round: number; activeRules: string[]; players: Player[] }) => void;
   roundTimer: (timeLeft: number) => void;
   nextRoundCountdown: (countdown: number) => void;
+  readyUpdate: (data: { readyCount: number; totalActive: number; allReady: boolean }) => void;
   choiceConfirmed: (choice: number) => void;
-  choiceUpdate: (data: { chosenCount: number; totalActivePlayers: number }) => void;
+  choiceUpdate: (data: { 
+    chosenCount: number; 
+    totalActivePlayers: number; 
+    lastPlayerName?: string; 
+    timestamp?: number; 
+  }) => void;
   roundResult: (result: RoundResult) => void;
   gameFinished: (data: { winner: string; finalScores: Player[] }) => void;
   error: (message: string) => void;

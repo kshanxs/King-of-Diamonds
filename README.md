@@ -4,7 +4,7 @@ A web-based multiplayer game inspired by "King of Diamonds" from Alice in Border
 
 ## 🎮 Game Overview
 
----mpete to be the last survivor by strategically selecting numbers each round. The game features dynamic rules that activate as players are eliminated, creating an evolving challenge that requires adaptability, cunning, and mathematical thinking. Face off against intelligent AI opponents named after playing cards in this battle of wits.
+compete to be the last survivor by strategically selecting numbers each round. The game features dynamic rules that activate as players are eliminated, creating an evolving challenge that requires adaptability, cunning, and mathematical thinking. Face off against intelligent AI opponents named after playing cards in this battle of wits.
 
 ## 🏗️ Project Structure
 
@@ -239,15 +239,6 @@ This project is open source and available under the [MIT License](LICENSE).
 ## 🎯 Inspiration
 
 Inspired by the psychological strategy games from "Alice in Borderland," specifically the King of Diamonds game that combines mathematical precision with psychological warfare.
-
-## � Future Features
-
-- [ ] Spectator mode
-- [ ] Replay system
-- [ ] Advanced AI difficulty levels
-- [ ] Tournament brackets
-- [ ] Player statistics and rankings
-- [ ] Custom rule variations
 
 ---
 

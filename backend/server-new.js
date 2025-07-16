@@ -4,7 +4,6 @@ const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
 const cors = require('cors');
-const path = require('path');
 
 // Import modules
 const { SERVER_CONFIG } = require('./config/constants');

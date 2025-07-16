@@ -1,0 +1,30 @@
+# Bun configuration for King of Diamonds project
+# https://bun.sh/docs/runtime/bunfig
+
+[install]
+# Configure package installation
+cache = true
+registry = "https://registry.npmjs.org"
+exact = false
+
+[install.scopes]
+# Add any scoped packages configuration here if needed
+
+[run]
+# Configure script execution
+shell = "bash"
+
+# Environment variables
+[env]
+# Set default environment for development
+NODE_ENV = "development"
+
+# Development server configuration
+[dev]
+# Enable hot reload for development
+hot = true
+
+# Build optimization
+[build]
+# Enable minification for production builds
+minify = true

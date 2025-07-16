@@ -20,46 +20,74 @@ King of Diamonds/
 
 ### 📋 Prerequisites
 
-- 📦 Node.js (v18+ recommended)
-- 📦 npm or yarn
+- 📦 Node.js (v18+ recommended) **OR** Bun.js (v1.0+ recommended)
+- 📦 npm, yarn, or bun package manager
 
 ### 💾 Installation & Setup
 
 1. **📥 Clone the Repository**
 
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/kshanxs/King-of-Diamonds.git
    cd "King of Diamonds"
    ```
 
 2. **🔧 Install Backend Dependencies**
 
+   With npm:
    ```bash
    cd backend
    npm install
    ```
 
+   With Bun (faster):
+   ```bash
+   cd backend
+   bun install
+   ```
+
 3. **🔧 Install Frontend Dependencies**
 
+   With npm:
    ```bash
    cd frontend
    npm install
    ```
 
+   With Bun (faster):
+   ```bash
+   cd frontend
+   bun install
+   ```
+
 4. **🚀 Start the Backend Server**
 
+   With Node.js:
    ```bash
    cd backend
    node server.js
+   ```
+
+   With Bun (faster startup):
+   ```bash
+   cd backend
+   bun run server.js
    ```
 
    The server will start on `http://localhost:5001` 🌐
 
 5. **🎨 Start the Frontend Development Server**
 
+   With npm:
    ```bash
    cd frontend
    npm run dev
+   ```
+
+   With Bun (faster):
+   ```bash
+   cd frontend
+   bun run dev
    ```
 
    The client will start on `http://localhost:5173` 🌐
@@ -143,7 +171,7 @@ The game evolves as players are eliminated:
 
 ### Backend
 
-- **Node.js** with Express.js
+- **Node.js** with Express.js (or **Bun.js** for faster performance)
 - **Socket.io** for WebSocket communication
 - **CORS** enabled for cross-origin requests
 - **UUID** for unique player and room identification
@@ -153,6 +181,7 @@ The game evolves as players are eliminated:
 - **TypeScript** for type safety
 - **ESLint** for code quality
 - **Hot reload** for rapid development
+- **Bun.js** support for faster package management and runtime
 
 ## 📁 File Structure
 
@@ -197,6 +226,7 @@ King of Diamonds/
 
 ### Running in Development Mode
 
+**With Node.js:**
 1. Start the backend server:
 
    ```bash
@@ -211,8 +241,24 @@ King of Diamonds/
    npm run dev
    ```
 
+**With Bun (recommended for faster performance):**
+1. Start the backend server:
+
+   ```bash
+   cd backend
+   bun run server.js
+   ```
+
+2. Start the frontend development server:
+
+   ```bash
+   cd frontend
+   bun run dev
+   ```
+
 ### Building for Production
 
+**With npm:**
 1. Build the frontend:
 
    ```bash
@@ -220,7 +266,15 @@ King of Diamonds/
    npm run build
    ```
 
-2. The backend can be deployed as-is with Node.js
+**With Bun (faster build):**
+1. Build the frontend:
+
+   ```bash
+   cd frontend
+   bun run build
+   ```
+
+2. The backend can be deployed as-is with Node.js or Bun
 
 ### Environment Configuration
 

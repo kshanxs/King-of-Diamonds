@@ -1,4 +1,4 @@
-# Development Guide - Balance of Diamonds
+# Development Guide - King of Diamonds
 
 ## 🚀 Quick Start for Development
 
@@ -125,8 +125,11 @@ backend/
 4. **Randomization**: Add slight randomness to avoid predictability
 
 ### Bot Names
-- AliceBot, CheshireAI, QueenBot, MadHatterAI
-- WhiteRabbitBot, CaterpillarAI, TweedleBot, DormouseAI
+- Playing card themed names from actual implementation:
+  - **Kings**: King of Hearts, King of Spades, King of Diamonds, King of Clubs
+  - **Queens**: Queen of Diamonds, Queen of Hearts, Queen of Clubs, Queen of Spades
+  - **Jacks**: Jack of Hearts, Jack of Diamonds, Jack of Spades, Jack of Clubs
+  - **Aces**: Ace of Hearts, Ace of Diamonds, Ace of Spades, Ace of Clubs
 
 ## 🐛 Debugging
 
@@ -145,9 +148,10 @@ backend/
 ## 📝 Adding New Features
 
 ### Adding New Game Rules
-1. Update `backend/server.js` - modify `getActiveRules()` and `processRound()`
-2. Update `frontend/src/types/game.ts` if needed
-3. Test thoroughly with multiple players
+1. Update game logic in `backend/models/GameRoom.js` 
+2. Modify `getActiveRules()` and `processRound()` methods
+3. Update frontend types in `frontend/src/types/game.ts` if needed
+4. Test thoroughly with multiple players
 
 ### Adding New UI Components
 1. Create component in `frontend/src/components/`
@@ -156,7 +160,7 @@ backend/
 4. Apply glassmorphism styling classes
 
 ### Adding New API Endpoints
-1. Add route in `backend/server.js`
+1. Add route in `backend/routes/api.js`
 2. Add service method in `frontend/src/services/apiService.ts`
 3. Use in components as needed
 

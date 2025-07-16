@@ -12,7 +12,11 @@ Compete to be the last survivor by strategically selecting numbers each round. T
 King of Diamonds/
 ├── backend/          # Node.js + Express + Socket.io server
 ├── frontend/         # React + TypeScript + Tailwind CSS client
-├── GAME_RULES.md     # Detailed game rules and mechanics
+├── docs/             # All documentation files
+│   ├── GAME_RULES.md     # Detailed game rules and mechanics
+│   ├── DEVELOPMENT.md    # Development guide and testing
+│   ├── DEPLOYMENT.md     # Production deployment guide
+│   └── backend/          # Backend-specific documentation
 └── README.md         # This file
 ```
 
@@ -158,7 +162,7 @@ The game evolves as players are eliminated:
 - **Active Players**: Players currently participating in the game
 - **Game Continuation**: Game continues smoothly with remaining players
 
-*For detailed rules and strategies, see [GAME_RULES.md](GAME_RULES.md)*
+*For detailed rules and strategies, see [docs/GAME_RULES.md](docs/GAME_RULES.md)*
 
 ## 🛠️ Technology Stack
 
@@ -209,7 +213,7 @@ King of Diamonds/
 │   │   ├── hooks/
 │   │   │   └── useGameRoom.ts   # Game state management hook
 │   │   ├── services/
-│   │   │   ├── api.ts           # REST API calls
+│   │   │   ├── apiService.ts    # REST API calls
 │   │   │   └── socketService.ts # Socket.io client service
 │   │   ├── types/
 │   │   │   └── game.ts          # TypeScript type definitions
@@ -218,8 +222,19 @@ King of Diamonds/
 │   ├── index.html               # HTML template
 │   ├── package.json             # Frontend dependencies
 │   └── README.md                # Frontend documentation
-├── GAME_RULES.md                # Detailed game rules and strategy guide
-└── README.md                    # This file
+├── docs/                        # Documentation directory
+│   ├── GAME_RULES.md           # Detailed game rules and strategy guide
+│   ├── DEVELOPMENT.md          # Development guide and testing
+│   ├── DEPLOYMENT.md           # Production deployment guide
+│   ├── IMPLEMENTATION_SUMMARY.md # Implementation overview
+│   ├── MATCHMAKING.md          # Matchmaking system documentation
+│   ├── backend/                # Backend-specific docs
+│   │   ├── README.md           # Backend API documentation
+│   │   ├── ARCHITECTURE.md     # Backend architecture guide
+│   │   └── AI_SYSTEM_README.md # AI system documentation
+│   └── frontend/               # Frontend-specific docs
+│       └── README.md           # Frontend component documentation
+└── README.md                   # This file
 ```
 
 ## 🚀 Development

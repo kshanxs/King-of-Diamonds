@@ -43,36 +43,49 @@ Built files will be in the `dist` directory. 📁
 
 ## 📁 Project Structure
 
-```
+```text
 src/
-├── components/           # React components
-│   ├── GameRoom.tsx     # Main game interface
-│   └── HomePage.tsx     # Landing page
-├── services/            # API and Socket services
-│   ├── api.ts          # REST API calls
-│   └── socket.ts       # Socket.io connection
-├── index.css           # Global styles with playing cards theme
-└── main.tsx            # Application entry point
+├── components/              # React components
+│   ├── GameRoom.tsx        # Main game interface
+│   ├── LiveLeaderboard.tsx # Real-time leaderboard display
+│   ├── RoundResultModal.tsx # Round results display
+│   ├── GamePlaying.tsx     # Number selection interface
+│   ├── GameCountdown.tsx   # Game start countdown
+│   └── HomePage.tsx        # Landing page
+├── hooks/                   # Custom React hooks
+│   └── useGameRoom.ts      # Game state management hook
+├── services/               # API and Socket services
+│   ├── api.ts             # REST API calls
+│   └── socketService.ts   # Socket.io connection
+├── types/                  # TypeScript definitions
+│   └── game.ts            # Game-related type definitions
+├── index.css              # Global styles with playing cards theme
+└── main.tsx               # Application entry point
 ```
 
 ## 🎨 Key Features
 
 ### Real-time Gameplay
+
 - **Socket.io Integration**: Live game state synchronization
 - **Smart Round Progression**: 10-second countdown with early start when all players ready
-- **Player Status Tracking**: Real-time updates on who's choosing, ready, or left
+- **Player Status Tracking**: Real-time updates on who's choosing, ready, or connected
 
 ### Modern UI/UX
+
 - **Glassmorphism Design**: Beautiful translucent card-table aesthetic
 - **Playing Card Theme**: Card-inspired background patterns and visual elements
 - **Responsive Design**: Works perfectly on desktop and mobile devices
 - **Smooth Animations**: CSS transitions and hover effects
+- **Live Leaderboard**: Dynamic sorting and real-time player standings
 
 ### User Experience
+
 - **Copy Room Codes**: One-click clipboard integration for easy sharing
 - **Paste Functionality**: Smart text parsing for room code entry
 - **Visual Feedback**: Clear indication of game state and player actions
 - **Error Handling**: Graceful error states and user feedback
+- **Real-time Updates**: Live game state and player status synchronization
 
 ## 🎮 Components Overview
 

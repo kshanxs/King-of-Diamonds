@@ -4,7 +4,7 @@ A web-based multiplayer game inspired by "King of Diamonds" from Alice in Border
 
 ## 🎮 Game Overview
 
-compete to be the last survivor by strategically selecting numbers each round. The game features dynamic rules that activate as players are eliminated, creating an evolving challenge that requires adaptability, cunning, and mathematical thinking. Face off against intelligent AI opponents named after playing cards in this battle of wits.
+Compete to be the last survivor by strategically selecting numbers each round. The game features dynamic rules that activate as players are eliminated, creating an evolving challenge that requires adaptability, cunning, and mathematical thinking. Face off against intelligent AI opponents named after playing cards in this battle of wits.
 
 ## 🏗️ Project Structure
 
@@ -66,7 +66,7 @@ King of Diamonds/
 
 6. **🌐 Open your browser** and navigate to `http://localhost:5173`
 
-## 🎯 Game Features
+## 🎯 Current Game Features
 
 ### 🎮 Game Modes
 
@@ -84,18 +84,17 @@ Face off against strategically named AI opponents with advanced intelligence:
 - **Aces**: Ace of Hearts, Ace of Diamonds, Ace of Spades, Ace of Clubs
 
 Each bot has unique personalities and strategic behaviors:
-- **Kings**: Aggressive risk-takers who attempt bold gambits
-- **Queens**: Balanced calculators with strong mathematical focus
-- **Jacks**: Unpredictable wildcards who break patterns
-- **Aces**: Mathematical precision experts with conservative play
 
-*For detailed AI system documentation, see [backend/AI_SYSTEM_README.md](backend/AI_SYSTEM_README.md)*
+- **Kings**: Aggressive risk-takers (Risk: 0.8, Calculation: 0.6)
+- **Queens**: Balanced calculators with strong mathematical focus (Risk: 0.5, Calculation: 0.8)
+- **Jacks**: Unpredictable wildcards (Risk: 0.7, Calculation: 0.4)
+- **Aces**: Mathematical precision experts (Risk: 0.3, Calculation: 0.9)
 
 ### ⚡ Real-time Features
 
-- **Live Synchronization**: Real-time updates across all players
+- **Live Synchronization**: Real-time updates across all players using Socket.io
 - **Smart Round Progression**: 10-second countdown with early start when all players ready
-- **Player Status Tracking**: See who's ready, who's choosing, who's left
+- **Player Status Tracking**: See who's ready, who's choosing
 - **Copy Room Codes**: Easy room sharing with one-click copy
 
 ### 🎨 Modern UI/UX
@@ -104,6 +103,7 @@ Each bot has unique personalities and strategic behaviors:
 - **Playing Card Theme**: Card-inspired background and visual elements
 - **Responsive Design**: Works perfectly on desktop and mobile
 - **Real-time Animations**: Smooth transitions and visual feedback
+- **Live Leaderboard**: Dynamic sorting and real-time updates
 
 ## 🎲 Core Game Mechanics
 
@@ -120,10 +120,15 @@ Each bot has unique personalities and strategic behaviors:
 
 The game evolves as players are eliminated:
 
-- **Rule 1** (After 1 elimination): Duplicate number penalty
-- **Rule 2** (After 2 eliminations): Exact target bonus/penalty
-- **Rule 3** (After 3 eliminations): Zero-hundred gambit
-- **Always Active**: Timeout penalty (-2 points)
+- **Always Active**: Timeout penalty (-2 points for no submission)
+- **After 1 elimination**: Duplicate number penalty (-1 point)
+- **After 2 eliminations**: Exact target bonus/penalty (-2 points to others)
+- **After 3 eliminations**: Zero-hundred gambit (0 vs 100 special rule)
+
+### Current Player Management
+
+- **Active Players**: Players currently participating in the game
+- **Game Continuation**: Game continues smoothly with remaining players
 
 *For detailed rules and strategies, see [GAME_RULES.md](GAME_RULES.md)*
 
@@ -151,24 +156,41 @@ The game evolves as players are eliminated:
 
 ## 📁 File Structure
 
-```
+```text
 King of Diamonds/
 ├── backend/
-│   ├── server.js              # Main server file
-│   ├── package.json           # Backend dependencies
-│   ├── README.md             # Backend documentation
-│   └── AI_SYSTEM_README.md   # AI bot system documentation
+│   ├── models/
+│   │   └── GameRoom.js          # Core game logic and room management
+│   ├── services/
+│   │   └── BotAI.js             # AI bot intelligence system
+│   ├── handlers/
+│   │   └── socketHandlers.js    # Socket.io event handlers
+│   ├── config/
+│   │   └── constants.js         # Game constants and configuration
+│   ├── server.js                # Main server file
+│   ├── package.json             # Backend dependencies
+│   └── README.md                # Backend documentation
 ├── frontend/
 │   ├── src/
-│   │   ├── components/       # React components
-│   │   ├── services/         # API and Socket services
-│   │   ├── index.css         # Global styles
-│   │   └── main.tsx          # Entry point
-│   ├── index.html            # HTML template
-│   ├── package.json          # Frontend dependencies
-│   └── README.md             # Frontend documentation
-├── GAME_RULES.md             # Detailed game rules
-└── README.md                 # This file
+│   │   ├── components/          # React components
+│   │   │   ├── GameRoom.tsx     # Main game interface
+│   │   │   ├── LiveLeaderboard.tsx # Real-time leaderboard
+│   │   │   ├── RoundResultModal.tsx # Round results display
+│   │   │   └── HomePage.tsx     # Landing page
+│   │   ├── hooks/
+│   │   │   └── useGameRoom.ts   # Game state management hook
+│   │   ├── services/
+│   │   │   ├── api.ts           # REST API calls
+│   │   │   └── socketService.ts # Socket.io client service
+│   │   ├── types/
+│   │   │   └── game.ts          # TypeScript type definitions
+│   │   ├── index.css            # Global styles with playing card theme
+│   │   └── main.tsx             # Entry point
+│   ├── index.html               # HTML template
+│   ├── package.json             # Frontend dependencies
+│   └── README.md                # Frontend documentation
+├── GAME_RULES.md                # Detailed game rules and strategy guide
+└── README.md                    # This file
 ```
 
 ## 🚀 Development
@@ -179,7 +201,7 @@ King of Diamonds/
 
    ```bash
    cd backend
-   npm run dev  # or node server.js
+   node server.js
    ```
 
 2. Start the frontend development server:
@@ -215,7 +237,7 @@ King of Diamonds/
    - Click "Create Room" for solo play with AI opponents
    - Or enter a room code to join friends
 3. **Wait for players** or start immediately with AI
-4. **Make strategic choices** each round
+4. **Make strategic choices** each round (0-100)
 5. **Survive elimination** and be the last player standing
 
 ### Strategy Tips
@@ -223,6 +245,7 @@ King of Diamonds/
 - **Early Game**: Play conservatively, choose numbers around 40-50
 - **Mid Game**: Adapt to active rules, avoid duplicates
 - **End Game**: Master the zero-hundred gambit for victory
+- **Always Submit**: Timeout penalty is harsh (-2 points)
 
 ## 🤝 Contributing
 

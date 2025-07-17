@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { HomePage } from './components/HomePage';
 import { GameRoom } from './components/GameRoom';
-import './index.css';
+import './styles.css';
 
 type AppState = 'home' | 'game';
 

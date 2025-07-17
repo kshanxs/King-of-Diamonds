@@ -25,6 +25,26 @@ export const GamePlaying: React.FC<GamePlayingProps> = ({
   onNumberSelect,
   formatTime
 }) => {
+  const [showNumberGrid, setShowNumberGrid] = React.useState(true);
+  const [isGridExiting, setIsGridExiting] = React.useState(false);
+
+  // Handle number selection with exit animation
+  const handleNumberSelect = (number: number) => {
+    setIsGridExiting(true);
+    // Delay the actual selection to allow exit animation
+    setTimeout(() => {
+      onNumberSelect(number);
+      setShowNumberGrid(false);
+    }, 500); // Wait for exit animation to complete
+  };
+
+  // Reset grid state when round changes or selection is cleared
+  React.useEffect(() => {
+    if (selectedNumber === null && !isEliminated) {
+      setShowNumberGrid(true);
+      setIsGridExiting(false);
+    }
+  }, [selectedNumber, currentRound, isEliminated]);
   return (
     <div className="space-y-6">
       {/* Elimination Message */}
@@ -78,7 +98,12 @@ export const GamePlaying: React.FC<GamePlayingProps> = ({
               Choose your number (0-100):
             </p>
             
-            <NumberGrid onNumberSelect={onNumberSelect} />
+            {showNumberGrid && (
+              <NumberGrid 
+                onNumberSelect={handleNumberSelect}
+                isExiting={isGridExiting}
+              />
+            )}
             
             <ChoiceProgress 
               chosenCount={chosenCount}

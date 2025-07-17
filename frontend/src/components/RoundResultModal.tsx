@@ -19,10 +19,20 @@ export const RoundResultModal: React.FC<RoundResultModalProps> = ({
   onContinueClick
 }) => {
   const [hasClicked, setHasClicked] = React.useState(false);
+  const [isVisible, setIsVisible] = React.useState(false);
+  
+  // Show modal with animation
+  React.useEffect(() => {
+    const timer = setTimeout(() => setIsVisible(true), 50);
+    return () => clearTimeout(timer);
+  }, []);
   
   // Reset hasClicked when a new round starts
   React.useEffect(() => {
     setHasClicked(false);
+    setIsVisible(false);
+    const timer = setTimeout(() => setIsVisible(true), 50);
+    return () => clearTimeout(timer);
   }, [lastRoundResult.round]);
   
   const handleClick = () => {
@@ -31,8 +41,16 @@ export const RoundResultModal: React.FC<RoundResultModalProps> = ({
     onContinueClick();
   };
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-2 z-50">
-      <div className="glass-card p-4 max-w-lg w-full max-h-screen overflow-hidden flex flex-col">
+    <div 
+      className={`fixed inset-0 bg-black/50 flex items-center justify-center p-2 z-50 transition-opacity duration-300 ${
+        isVisible ? 'opacity-100' : 'opacity-0'
+      }`}
+    >
+      <div 
+        className={`glass-card p-4 max-w-lg w-full max-h-screen overflow-hidden flex flex-col transition-all duration-500 ease-out ${
+          isVisible ? 'transform translate-y-0 scale-100' : 'transform translate-y-8 scale-95'
+        }`}
+      >
         {/* Header with Title, Countdown, and Continue Button */}
         <div className="flex items-center justify-between mb-4">
           {/* Left: Countdown Timer */}

@@ -47,7 +47,8 @@ class GameRoom {
       isBot: isBot,
       hasLeft: false,
       currentChoice: null,
-      hasChosenThisRound: false
+      hasChosenThisRound: false,
+      timeoutCount: 0  // Track consecutive timeouts for elimination rule
     };
     
     this.players.set(playerId, player);
@@ -115,14 +116,17 @@ class GameRoom {
    */
   getActiveRules() {
     const rules = [];
-    rules.push("No input within time limit → Lose 2 points");
+    const activePlayers = Array.from(this.players.values()).filter(p => !p.isEliminated && !p.hasLeft);
+    
+    rules.push("No input within time limit → Lose 2 points (2nd timeout = elimination)");
     if (this.eliminatedCount >= RULE_THRESHOLDS.DUPLICATE_RULE) {
       rules.push("Duplicate numbers → All choosing them lose 1 point");
     }
     if (this.eliminatedCount >= RULE_THRESHOLDS.PERFECT_TARGET_RULE) {
       rules.push("Exact correct number → Other players lose 2 points");
     }
-    if (this.eliminatedCount >= RULE_THRESHOLDS.ZERO_HUNDRED_RULE) {
+    // Zero-hundred gambit only applies when exactly 2 players remain
+    if (activePlayers.length === 2) {
       rules.push("If one player chooses 0, another can win by choosing 100");
     }
     return rules;
@@ -297,11 +301,27 @@ class GameRoom {
     
     // Apply timeout penalty for players who didn't choose
     const timeoutPlayers = [];
+    const eliminatedByTimeout = [];
+    
     activePlayers.forEach(player => {
       if (!player.hasChosenThisRound) {
-        player.score -= GAME_CONFIG.TIMEOUT_PENALTY;
-        timeoutPlayers.push(player.name);
-        player.currentChoice = null; // Set to null for display purposes
+        player.timeoutCount++;
+        
+        if (player.timeoutCount >= GAME_CONFIG.TIMEOUT_ELIMINATION_THRESHOLD) {
+          // Second timeout - eliminate the player immediately
+          player.isEliminated = true;
+          this.eliminatedCount++;
+          eliminatedByTimeout.push(player.name);
+          player.currentChoice = null;
+        } else {
+          // First timeout - apply penalty points
+          player.score -= GAME_CONFIG.TIMEOUT_PENALTY;
+          timeoutPlayers.push(player.name);
+          player.currentChoice = null; // Set to null for display purposes
+        }
+      } else {
+        // Player chose this round - reset their timeout count
+        player.timeoutCount = 0;
       }
     });
     
@@ -311,7 +331,7 @@ class GameRoom {
     
     if (choices.length === 0) {
       // No one made a choice, just apply timeout penalties and continue
-      this.recordTimeoutRound(timeoutPlayers);
+      this.recordTimeoutRound(timeoutPlayers, eliminatedByTimeout);
       return;
     }
     
@@ -330,9 +350,9 @@ class GameRoom {
       }
     });
 
-    this.applyGameRules(playersWithChoices, target, winner);
+    winner = this.applyGameRules(playersWithChoices, target, winner);
     this.checkEliminations();
-    this.recordRoundResult(activePlayers, playersWithChoices, average, target, winner, timeoutPlayers);
+    this.recordRoundResult(activePlayers, playersWithChoices, average, target, winner, timeoutPlayers, eliminatedByTimeout);
     this.checkGameEnd();
   }
 
@@ -341,6 +361,7 @@ class GameRoom {
    * @param {Array} playersWithChoices - Players who made choices
    * @param {number} target - Calculated target
    * @param {Object} winner - Round winner
+   * @returns {Object} Updated winner after applying rules
    */
   applyGameRules(playersWithChoices, target, winner) {
     const activeRules = this.getActiveRules();
@@ -372,8 +393,9 @@ class GameRoom {
       }
     }
     
-    // Rule: 0 and 100 rule
-    if (activeRules.length >= 4) {
+    // Rule: 0 and 100 rule (only applies when exactly 2 players remain)
+    const activePlayers = Array.from(this.players.values()).filter(p => !p.isEliminated && !p.hasLeft);
+    if (activePlayers.length === 2) {
       const zeroPlayer = playersWithChoices.find(p => p.currentChoice === 0);
       const hundredPlayer = playersWithChoices.find(p => p.currentChoice === 100);
       
@@ -391,6 +413,8 @@ class GameRoom {
         }
       });
     }
+    
+    return winner; // Return the updated winner
   }
 
   /**
@@ -412,9 +436,10 @@ class GameRoom {
    * @param {number} average - Average of choices
    * @param {number} target - Calculated target
    * @param {Object} winner - Round winner
-   * @param {Array} timeoutPlayers - Players who timed out
+   * @param {Array} timeoutPlayers - Players who timed out (first time)
+   * @param {Array} eliminatedByTimeout - Players eliminated by timeout (second time)
    */
-  recordRoundResult(activePlayers, playersWithChoices, average, target, winner, timeoutPlayers) {
+  recordRoundResult(activePlayers, playersWithChoices, average, target, winner, timeoutPlayers, eliminatedByTimeout = []) {
     const roundResult = {
       round: this.currentRound,
       choices: activePlayers.map(p => ({ 
@@ -426,9 +451,11 @@ class GameRoom {
       target: playersWithChoices.length > 0 ? target : 0,
       winner: winner ? winner.name : 'No winner',
       timeoutPlayers,
+      eliminatedByTimeout, // Players eliminated by 2nd timeout
       eliminatedThisRound: Array.from(this.players.values())
         .filter(p => p.isEliminated && p.score === GAME_CONFIG.ELIMINATION_SCORE)
         .map(p => p.name)
+        .concat(eliminatedByTimeout) // Include timeout eliminations
     };
     
     this.roundHistory.push(roundResult);
@@ -450,9 +477,10 @@ class GameRoom {
 
   /**
    * Record timeout-only round
-   * @param {Array} timeoutPlayers - Players who timed out
+   * @param {Array} timeoutPlayers - Players who timed out (first time)
+   * @param {Array} eliminatedByTimeout - Players eliminated by timeout (second time)
    */
-  recordTimeoutRound(timeoutPlayers) {
+  recordTimeoutRound(timeoutPlayers, eliminatedByTimeout = []) {
     this.checkEliminations();
 
     const roundResult = {
@@ -462,9 +490,11 @@ class GameRoom {
       target: 0,
       winner: 'No winner - All players timed out',
       timeoutPlayers,
+      eliminatedByTimeout, // Players eliminated by 2nd timeout
       eliminatedThisRound: Array.from(this.players.values())
         .filter(p => p.isEliminated && p.score <= GAME_CONFIG.ELIMINATION_SCORE)
         .map(p => p.name)
+        .concat(eliminatedByTimeout) // Include timeout eliminations
     };
 
     this.roundHistory.push(roundResult);

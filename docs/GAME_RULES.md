@@ -45,10 +45,12 @@ Result: Player who chose 40 wins, others lose 1 point
 
 The game's complexity increases as players are eliminated, activating powerful new rules that change optimal strategy.
 
-### ⚠️ Always Active: Timeout Penalty
+### ⚠️ Always Active: Timeout Penalty & Elimination
 - **🕐 When**: Every round
-- **💥 Effect**: Players who don't submit a number lose 2 points instead of 1
-- **💡 Strategy**: Always submit something, even a random number is better than timing out
+- **💥 First Timeout**: Players who don't submit a number lose 2 points instead of 1
+- **☠️ Second Consecutive Timeout**: Player is immediately eliminated from the game
+- **� Reset**: Timeout count resets when player successfully submits a choice
+- **�💡 Strategy**: Always submit something, even a random number is better than timing out - and definitely better than being eliminated!
 
 ### 🚨 Rule 1: Duplicate Number Penalty
 **🔓 Activates after 1st player elimination**

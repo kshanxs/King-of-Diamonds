@@ -16,6 +16,7 @@ const GAME_CONFIG = {
   NEXT_ROUND_DELAY: 10, // seconds
   ELIMINATION_SCORE: -10,
   TIMEOUT_PENALTY: -2,
+  TIMEOUT_ELIMINATION_THRESHOLD: 2, // Eliminate player after this many consecutive timeouts
   DUPLICATE_PENALTY: -1,
   PERFECT_TARGET_PENALTY: -2
 };
@@ -44,7 +45,7 @@ const SERVER_CONFIG = {
 const RULE_THRESHOLDS = {
   DUPLICATE_RULE: 1,      // Activated after 1 elimination
   PERFECT_TARGET_RULE: 2, // Activated after 2 eliminations
-  ZERO_HUNDRED_RULE: 3    // Activated after 3 eliminations
+  ZERO_HUNDRED_RULE: 3    // Note: Actually checks for exactly 2 active players remaining
 };
 
 // Round numbers that bots tend to avoid

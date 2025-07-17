@@ -19,7 +19,7 @@ backend/
 ├── 📁 utils/
 │   └── gameUtils.js          # Utility functions
 ├── server.js                 # Main server file (simplified)
-└── server-old.js            # Original monolithic file (backup)
+└── server-legacy-backup.js  # Original monolithic file (backup)
 ```
 
 ## 🎯 Module Responsibilities
@@ -199,7 +199,7 @@ test('Create room endpoint', async () => {
 ## 🔄 Migration Notes
 
 ### From Old Structure
-The old monolithic `server.js` (now `server-old.js`) contained:
+The old monolithic `server.js` (now `server-legacy-backup.js`) contained:
 - 852 lines of mixed concerns
 - Game logic, AI logic, and network handling combined
 - Difficult to test and maintain

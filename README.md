@@ -152,7 +152,7 @@ Each bot has unique personalities and strategic behaviors:
 
 The game evolves as players are eliminated:
 
-- **Always Active**: Timeout penalty (-2 points for no submission)
+- **Always Active**: Timeout penalty (-2 points for no submission, elimination after 2nd consecutive timeout)
 - **After 1 elimination**: Duplicate number penalty (-1 point)
 - **After 2 eliminations**: Exact target bonus/penalty (-2 points to others)
 - **After 3 eliminations**: Zero-hundred gambit (0 vs 100 special rule)

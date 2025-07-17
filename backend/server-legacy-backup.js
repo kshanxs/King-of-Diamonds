@@ -1,3 +1,20 @@
+// 🗃️ LEGACY BACKUP - King of Diamonds Original Monolithic Server 💎
+// 
+// ⚠️ THIS FILE IS FOR REFERENCE ONLY - DO NOT USE IN PRODUCTION ⚠️
+// 
+// This is the original 856-line monolithic server implementation that contained
+// all game logic, AI logic, and network handling in a single file.
+// 
+// It has been replaced by the modular architecture in server.js + separate modules.
+// This file is kept as a backup and reference during the refactoring process.
+// 
+// For the current implementation, see:
+// - server.js (main entry point)
+// - models/GameRoom.js (game logic)
+// - services/BotAI.js (AI intelligence)
+// - handlers/socketHandlers.js (socket events)
+// - config/constants.js (configuration)
+
 const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
@@ -533,6 +550,8 @@ class GameRoom {
       
       if (zeroPlayer && hundredPlayer) {
         // Hundred player wins this rule
+        // BUG: This assignment doesn't actually update the winner due to variable scope
+        // Fixed in the new modular version
         winner = hundredPlayer;
       }
     }

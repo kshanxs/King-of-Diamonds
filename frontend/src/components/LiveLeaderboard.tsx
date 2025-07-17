@@ -1,19 +1,39 @@
 import React, { memo } from 'react';
-import type { Player } from '../types/game';
+import type { Player, RoundResult } from '../types/game';
 
 interface LiveLeaderboardProps {
   players: Player[];
   playerId: string;
   leftPlayers?: Set<string>; // Made optional since we now use hasLeft from backend
-  gameState: string;
+  roundHistory?: RoundResult[]; // Add round history to track point changes
 }
 
 export const LiveLeaderboard: React.FC<LiveLeaderboardProps> = memo(({
   players,
   playerId,
   leftPlayers: _leftPlayers, // Keep for compatibility but don't use for display
-  gameState
+  roundHistory = [] // Default to empty array
 }) => {
+  
+  // Function to calculate point changes for a specific player across all rounds
+  const getPlayerPointHistory = (playerName: string): number[] => {
+    const pointChanges: number[] = [];
+    
+    roundHistory.forEach(round => {
+      const playerChoice = round.choices.find(choice => choice.name === playerName);
+      if (playerChoice) {
+        // Calculate total loss for this round
+        const totalLoss = playerChoice.pointLosses 
+          ? playerChoice.pointLosses.reduce((sum, loss) => sum + loss.points, 0)
+          : 0;
+        
+        // Add the loss (negative) or 0 if no points lost
+        pointChanges.push(totalLoss > 0 ? -totalLoss : 0);
+      }
+    });
+    
+    return pointChanges;
+  };
   return (
     <div className="glass-card p-6">
       <h3 className="text-xl font-bold text-white mb-4">🏆 Live Leaderboard</h3>
@@ -47,6 +67,9 @@ export const LiveLeaderboard: React.FC<LiveLeaderboardProps> = memo(({
                 .findIndex(p => p.id === player.id);
             }
             
+            // Get player's point history
+            const pointHistory = getPlayerPointHistory(player.name);
+            
             return (
               <div
                 key={player.id}
@@ -71,6 +94,7 @@ export const LiveLeaderboard: React.FC<LiveLeaderboardProps> = memo(({
                         actualRank === 0 ? '🥇' : actualRank === 1 ? '🥈' : actualRank === 2 ? '🥉' : '⭐'
                       )}
                     </div>
+                    
                     <div>
                       <p className={`font-semibold ${
                         hasLeft ? 'text-gray-400' :
@@ -81,21 +105,21 @@ export const LiveLeaderboard: React.FC<LiveLeaderboardProps> = memo(({
                         {player.id === playerId && ' (You)'}
                         {hasLeft && ' 👋 (Left)'}
                       </p>
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-4">
                         <p className={`text-sm ${
                           hasLeft ? 'text-gray-500' :
                           player.isEliminated ? 'text-red-400' : 'text-white/70'
                         }`}>
                           Score: {player.score}
                         </p>
-                        {!hasLeft && gameState === 'playing' && !player.isEliminated && (
-                          <span className={`text-xs px-2 py-1 rounded-full ${
-                            player.hasChosenThisRound 
-                              ? 'bg-green-500/20 text-green-300' 
-                              : 'bg-orange-500/20 text-orange-300'
+                        {/* Point History Display */}
+                        {pointHistory.length > 0 && (
+                          <p className={`text-sm ${
+                            hasLeft ? 'text-gray-500' :
+                            player.isEliminated ? 'text-red-400' : 'text-white/70'
                           }`}>
-                            {player.hasChosenThisRound ? '✓ Ready' : '⏳ Choosing'}
-                          </span>
+                            ({pointHistory.join(', ')})
+                          </p>
                         )}
                       </div>
                     </div>

@@ -73,7 +73,7 @@ export const GameRoom: React.FC<GameRoomProps> = ({ roomId, playerId, onLeaveRoo
           players={gameState.players}
           playerId={playerId}
           leftPlayers={leftPlayers}
-          gameState={gameState.gameState}
+          roundHistory={gameState.roundHistory}
         />
 
         {gameState.gameState === 'playing' && (

@@ -76,7 +76,9 @@ export const GameRoom: React.FC<GameRoomProps> = ({ roomId, playerId, onLeaveRoo
           gameState={gameState.gameState}
         />
 
-        <ActiveRules activeRules={gameState.activeRules} />
+        {gameState.gameState === 'playing' && (
+          <ActiveRules activeRules={gameState.activeRules} />
+        )}
 
         {gameState.gameState === 'waiting' && (
           <GameLobby 

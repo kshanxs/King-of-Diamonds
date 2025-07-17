@@ -47,7 +47,11 @@ export const GamePlaying: React.FC<GamePlayingProps> = ({
             Round {currentRound}
           </h3>
           {timeLeft !== null && (
-            <div className="text-2xl font-bold text-white">
+            <div className={`text-2xl font-bold transition-all duration-300 ${
+              timeLeft <= 10 
+                ? 'text-red-400 animate-pulse' 
+                : 'text-white'
+            }`}>
               {formatTime(timeLeft)}
             </div>
           )}

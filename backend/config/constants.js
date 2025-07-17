@@ -13,7 +13,7 @@ const GAME_CONFIG = {
   MAX_PLAYERS: 5,
   MIN_PLAYERS: 1,
   ROUND_TIME_LIMIT: 60, // seconds
-  NEXT_ROUND_DELAY: 10, // seconds
+  NEXT_ROUND_DELAY: 15, // seconds
   ELIMINATION_SCORE: -10,
   TIMEOUT_PENALTY: -2,
   TIMEOUT_ELIMINATION_THRESHOLD: 2, // Eliminate player after this many consecutive timeouts

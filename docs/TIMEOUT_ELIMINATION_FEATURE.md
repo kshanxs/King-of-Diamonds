@@ -36,7 +36,7 @@ Added a new **timeout elimination rule** to improve game flow and handle unrespo
 
 - `backend/models/GameRoom.js` - Main game logic
 - `backend/config/constants.js` - Added new constant
-- `docs/GAME_RULES.md` - Updated rule documentation  
+- `GAME_RULES.md` - Updated rule documentation  
 - `README.md` - Updated feature summary
 
 ## 📊 Game Flow Example

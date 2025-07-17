@@ -13,10 +13,19 @@ King of Diamonds/
 ├── backend/          # Node.js + Express + Socket.io server
 ├── frontend/         # React + TypeScript + Tailwind CSS client
 ├── docs/             # All documentation files
-│   ├── GAME_RULES.md     # Detailed game rules and mechanics
-│   ├── DEVELOPMENT.md    # Development guide and testing
-│   ├── DEPLOYMENT.md     # Production deployment guide
-│   └── backend/          # Backend-specific documentation
+│   ├── GAME_RULES.md         # Detailed game rules and mechanics
+│   ├── DEVELOPMENT.md        # Development guide and testing
+│   ├── DEPLOYMENT.md         # Production deployment guide
+│   ├── IMPLEMENTATION_SUMMARY.md # Implementation overview
+│   ├── MATCHMAKING.md        # Matchmaking system documentation
+│   ├── TIMEOUT_ELIMINATION_FEATURE.md # Timeout feature documentation
+│   ├── ZERO_HUNDRED_BUG_FIX.md # Zero-hundred rule fix documentation
+│   ├── backend/              # Backend-specific documentation
+│   │   ├── README.md         # Backend API documentation
+│   │   ├── ARCHITECTURE.md   # Backend architecture guide
+│   │   └── AI_SYSTEM_README.md # AI system documentation
+│   └── frontend/             # Frontend-specific documentation
+│       └── README.md         # Frontend component documentation
 └── README.md         # This file
 ```
 
@@ -228,6 +237,8 @@ King of Diamonds/
 │   ├── DEPLOYMENT.md           # Production deployment guide
 │   ├── IMPLEMENTATION_SUMMARY.md # Implementation overview
 │   ├── MATCHMAKING.md          # Matchmaking system documentation
+│   ├── TIMEOUT_ELIMINATION_FEATURE.md # Timeout feature documentation
+│   ├── ZERO_HUNDRED_BUG_FIX.md # Zero-hundred rule fix documentation
 │   ├── backend/                # Backend-specific docs
 │   │   ├── README.md           # Backend API documentation
 │   │   ├── ARCHITECTURE.md     # Backend architecture guide

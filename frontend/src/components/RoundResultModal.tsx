@@ -32,23 +32,53 @@ export const RoundResultModal: React.FC<RoundResultModalProps> = ({
               <div>
                 <h4 className="text-white/80 font-medium mb-3">Player Choices:</h4>
                 <div className="grid grid-cols-1 gap-2">
-                  {lastRoundResult.choices.map((choice, index) => (
-                    <div 
-                      key={index} 
-                      className={`p-3 rounded-lg flex justify-between items-center ${
-                        choice.timedOut 
-                          ? 'bg-orange-500/20 border border-orange-500/30' 
-                          : 'bg-blue-500/20 border border-blue-500/30'
-                      }`}
-                    >
-                      <span className={choice.timedOut ? 'text-orange-200' : 'text-blue-200'}>
-                        {choice.name}
-                      </span>
-                      <span className={`font-bold text-lg ${choice.timedOut ? 'text-orange-300' : 'text-blue-300'}`}>
-                        {choice.timedOut ? 'TIMEOUT' : choice.choice}
-                      </span>
-                    </div>
-                  ))}
+                  {lastRoundResult.choices.map((choice, index) => {
+                    const isWinner = choice.name === lastRoundResult.winner;
+                    return (
+                      <div 
+                        key={index} 
+                        className={`p-3 rounded-lg ${
+                          isWinner
+                            ? 'bg-gradient-to-r from-yellow-500/30 to-amber-500/30 border-2 border-yellow-400/50 shadow-lg shadow-yellow-400/20'
+                            : choice.timedOut 
+                              ? 'bg-orange-500/20 border border-orange-500/30' 
+                              : 'bg-blue-500/20 border border-blue-500/30'
+                        }`}
+                      >
+                        <div className="flex justify-between items-center">
+                          <span className={`${
+                            isWinner ? 'text-yellow-200 font-bold' :
+                            choice.timedOut ? 'text-orange-200' : 'text-blue-200'
+                          }`}>
+                            {isWinner && '👑 '}{choice.name}{isWinner && gameState === 'finished' && ' (WINNER)'}
+                          </span>
+                          <span className={`font-bold text-lg ${
+                            isWinner ? 'text-yellow-300' :
+                            choice.timedOut ? 'text-orange-300' : 'text-blue-300'
+                          }`}>
+                            {choice.timedOut ? 'TIMEOUT' : choice.choice}
+                          </span>
+                        </div>
+                        {choice.pointLosses && choice.pointLosses.length > 0 && (
+                          <div className="mt-2 space-y-1">
+                            {choice.pointLosses.map((loss, lossIndex) => (
+                              <div key={lossIndex} className="flex justify-between items-center text-xs">
+                                <span className="text-red-300">{loss.reason}</span>
+                                <span className="text-red-400 font-semibold">-{loss.points} pts</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {isWinner && (
+                          <div className="mt-2 text-xs">
+                            <span className="text-yellow-300 font-semibold">
+                              🏆 {gameState === 'finished' ? 'No points lost - Game Winner!' : 'No points lost - Round Winner!'}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -74,13 +104,6 @@ export const RoundResultModal: React.FC<RoundResultModalProps> = ({
                     </p>
                   </div>
                 </div>
-              </div>
-
-              {/* Winner */}
-              <div className="text-center">
-                <p className="text-xl font-bold text-diamond-400">
-                  🏆 Winner: {lastRoundResult.winner}
-                </p>
               </div>
             </>
           ) : (

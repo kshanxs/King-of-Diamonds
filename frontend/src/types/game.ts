@@ -11,7 +11,12 @@ export interface Player {
 
 export interface RoundResult {
   round: number;
-  choices: { name: string; choice: number; timedOut?: boolean }[];
+  choices: { 
+    name: string; 
+    choice: number; 
+    timedOut?: boolean;
+    pointLosses?: { reason: string; points: number }[];
+  }[];
   average: number;
   target: number;
   winner: string;

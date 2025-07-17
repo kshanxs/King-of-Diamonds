@@ -461,12 +461,19 @@ class GameRoom {
   processRound() {
     const activePlayers = Array.from(this.players.values()).filter(p => !p.isEliminated);
     
+    // Track point losses for each player this round
+    const pointLosses = new Map();
+    activePlayers.forEach(player => {
+      pointLosses.set(player.id, { name: player.name, losses: [] });
+    });
+    
     // Apply timeout penalty (-2 points) for players who didn't choose
     const timeoutPlayers = [];
     activePlayers.forEach(player => {
       if (!player.hasChosenThisRound) {
         player.score -= 2;
         timeoutPlayers.push(player.name);
+        pointLosses.get(player.id).losses.push({ reason: 'Timeout', points: 2 });
         player.currentChoice = null; // Set to null for display purposes
       }
     });
@@ -477,7 +484,7 @@ class GameRoom {
     
     if (choices.length === 0) {
       // No one made a choice, just apply timeout penalties and continue
-      this.recordTimeoutRound(timeoutPlayers);
+      this.recordTimeoutRound(timeoutPlayers, pointLosses);
       return;
     }
     
@@ -510,6 +517,7 @@ class GameRoom {
       playersWithChoices.forEach(player => {
         if (choiceCounts[player.currentChoice] > 1) {
           player.score -= 1;
+          pointLosses.get(player.id).losses.push({ reason: 'Duplicate number', points: 1 });
         }
       });
     }
@@ -521,6 +529,7 @@ class GameRoom {
         playersWithChoices.forEach(player => {
           if (player.id !== exactMatch.id) {
             player.score -= 2;
+            pointLosses.get(player.id).losses.push({ reason: 'Someone hit exact target', points: 2 });
           }
         });
       }
@@ -542,6 +551,7 @@ class GameRoom {
       playersWithChoices.forEach(player => {
         if (player.id !== winner.id) {
           player.score -= 1;
+          pointLosses.get(player.id).losses.push({ reason: 'Not closest to target', points: 1 });
         }
       });
     }
@@ -560,7 +570,8 @@ class GameRoom {
       choices: activePlayers.map(p => ({ 
         name: p.name, 
         choice: p.currentChoice,
-        timedOut: !p.hasChosenThisRound
+        timedOut: !p.hasChosenThisRound,
+        pointLosses: pointLosses.get(p.id).losses
       })),
       average: playersWithChoices.length > 0 ? average : 0,
       target: playersWithChoices.length > 0 ? target : 0,
@@ -601,7 +612,7 @@ class GameRoom {
     });
   }
 
-  recordTimeoutRound(timeoutPlayers) {
+  recordTimeoutRound(timeoutPlayers, pointLosses) {
     // Check for eliminations
     this.players.forEach(player => {
       if (player.score <= -10 && !player.isEliminated) {
@@ -613,7 +624,14 @@ class GameRoom {
     // Record round with no choices made
     const roundResult = {
       round: this.currentRound,
-      choices: [],
+      choices: Array.from(this.players.values())
+        .filter(p => !p.isEliminated)
+        .map(p => ({
+          name: p.name,
+          choice: null,
+          timedOut: true,
+          pointLosses: pointLosses.get(p.id).losses
+        })),
       average: 0,
       target: 0,
       winner: 'No winner - All players timed out',

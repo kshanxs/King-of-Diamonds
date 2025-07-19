@@ -20,7 +20,6 @@ export const LiveLeaderboard: React.FC<LiveLeaderboardProps> = memo(({
   // Function to calculate point changes for a specific player across all rounds
   const getPlayerPointHistory = (playerName: string): number[] => {
     const pointChanges: number[] = [];
-    
     roundHistory.forEach(round => {
       const playerChoice = round.choices.find(choice => choice.name === playerName);
       if (playerChoice) {
@@ -28,12 +27,10 @@ export const LiveLeaderboard: React.FC<LiveLeaderboardProps> = memo(({
         const totalLoss = playerChoice.pointLosses 
           ? playerChoice.pointLosses.reduce((sum, loss) => sum + loss.points, 0)
           : 0;
-        
-        // Add the loss (negative) or 0 if no points lost
-        pointChanges.push(totalLoss > 0 ? -totalLoss : 0);
+        // Use backend value directly
+        pointChanges.push(totalLoss);
       }
     });
-    
     return pointChanges;
   };
   return (
@@ -83,6 +80,11 @@ export const LiveLeaderboard: React.FC<LiveLeaderboardProps> = memo(({
             
             // Get player's point history and filter out zeros (no point change)
             const pointHistory = getPlayerPointHistory(player.name).filter(change => change !== 0);
+
+            // Calculate correct score from history if needed
+            const calculatedScore = pointHistory.reduce((acc, val) => acc + val, 0);
+            // Use backend score if negative, otherwise use calculated
+            const displayScore = player.score <= 0 ? player.score : calculatedScore;
 
             return (
               <div
@@ -134,7 +136,7 @@ export const LiveLeaderboard: React.FC<LiveLeaderboardProps> = memo(({
                           isActuallyLeft ? 'text-gray-500' :
                           player.isEliminated ? 'text-red-400' : 'text-white/70'
                         }`}>
-                          Score: {player.score}
+                          Score: {displayScore}
                         </p>
                         {/* Point History Display */}
                         {pointHistory.length > 0 && (
@@ -148,8 +150,12 @@ export const LiveLeaderboard: React.FC<LiveLeaderboardProps> = memo(({
                       </div>
                     </div>
                   </div>
+                  {/* Show status on right: LEFT or ELIMINATED */}
                   {isActuallyLeft && (
                     <span className="text-gray-400 font-bold text-sm">LEFT</span>
+                  )}
+                  {player.isEliminated && (
+                    <span className="text-red-400 font-bold text-sm">ELIMINATED</span>
                   )}
                 </div>
               </div>

@@ -41,18 +41,20 @@ class SocketService {
     }
   }
 
-  emit(event: string, data?: any) {
+  emit(event: string, data?: unknown) {
     if (this.socket) {
       this.socket.emit(event, data);
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   on(event: string, callback: (...args: any[]) => void) {
     if (this.socket) {
       this.socket.on(event, callback);
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   off(event: string, callback?: (...args: any[]) => void) {
     if (this.socket) {
       this.socket.off(event, callback);

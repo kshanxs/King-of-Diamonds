@@ -86,7 +86,7 @@ export const NetworkDiscovery: React.FC = () => {
     try {
       await navigator.clipboard.writeText(text);
       // Could add a toast notification here
-    } catch (err) {
+    } catch {
       // Fallback for older browsers
       const textArea = document.createElement('textarea');
       textArea.value = text;

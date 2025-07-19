@@ -245,6 +245,7 @@ King of Diamonds/
 │   ├── package.json             # Frontend dependencies
 │   └── README.md                # Frontend documentation
 ├── docs/                        # Documentation directory
+│   ├── README.md               # Documentation index and overview
 │   ├── GAME_RULES.md           # Detailed game rules and strategy guide
 │   ├── DEVELOPMENT.md          # Development guide and testing
 │   ├── DEPLOYMENT.md           # Production deployment guide
@@ -267,6 +268,7 @@ King of Diamonds/
 ### Running in Development Mode
 
 **With Node.js:**
+
 1. Start the backend server:
 
    ```bash
@@ -282,6 +284,7 @@ King of Diamonds/
    ```
 
 **With Bun (recommended for faster performance):**
+
 1. Start the backend server:
 
    ```bash
@@ -299,6 +302,7 @@ King of Diamonds/
 ### Building for Production
 
 **With npm:**
+
 1. Build the frontend:
 
    ```bash
@@ -307,6 +311,7 @@ King of Diamonds/
    ```
 
 **With Bun (faster build):**
+
 1. Build the frontend:
 
    ```bash
@@ -327,12 +332,14 @@ King of Diamonds/
 For detailed instructions on setting up LAN multiplayer with automatic network discovery:
 
 **Quick LAN Setup:**
+
 ```bash
 # Run the automated LAN setup script
 ./start-lan.sh
 ```
 
 **Manual Setup:**
+
 1. Start backend with network binding: `cd backend && npm start`
 2. Start frontend: `cd frontend && npm run dev`
 3. Connect devices on same network using displayed IP addresses

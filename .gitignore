@@ -225,6 +225,8 @@ storybook-static
 !package-lock.json
 
 # Keep documentation
+!docs/
+!docs/**/*.md
 !GAME_RULES.md
 !AI_SYSTEM_README.md
 !DEVELOPMENT.md

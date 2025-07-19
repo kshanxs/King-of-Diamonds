@@ -37,7 +37,7 @@ npm run dev -- --host 0.0.0.0
 
 - **🔍 Auto Network Discovery**: Automatically scan for games on your network
 - **📋 Easy Sharing**: Copy/paste URLs and QR codes for mobile devices
-- **🎮 In-Game Menu**: Access LAN options via hamburger menu in game
+- **🧪 Component Testing**: Visit `/test` for comprehensive UI testing
 - **⚡ Real-time Sync**: All game state synced across devices
 - **🏠 Offline Play**: No internet required - works purely on local network
 
@@ -47,11 +47,6 @@ npm run dev -- --host 0.0.0.0
 - Make sure all devices are on the same WiFi network
 - Check firewall settings (ports 5173 and 5001 need to be open)
 - Try disabling VPN if connection fails
-
-### Startup Issues:
-- If you get "EADDRINUSE" error, kill existing processes: `lsof -ti:5001 | xargs kill -9`
-- Make sure no other applications are using ports 5001 or 5173
-- Restart your terminal and try again
 
 ### Port Conflicts:
 - Frontend runs on port 5173 (Vite default)
@@ -96,17 +91,12 @@ The game is fully responsive and works great on mobile devices:
 - QR code scanning for easy connection
 - Optimized touch interactions
 
-## 🧪 LAN Features
+## 🧪 Testing
 
-Access LAN functionality in two ways:
-
-**1. From Home Screen:**
-- Toggle between "🌐 Online Play" and "🏠 Local Play" modes
-- Local Play mode shows network discovery and LAN-specific options
-
-**2. From Game (Hamburger Menu ☰):**
-- **� LAN Multiplayer**: Access network discovery and connection options
-- **🔗 Share LAN Link**: Get shareable links for your current IP
-- **📋 Copy Room Code**: Easy room code sharing
+Visit `http://YOUR_IP:5173/test` for the component test lab where you can:
+- Test all game scenarios
+- Preview UI components
+- Simulate different game states
+- Debug animations and interactions
 
 Enjoy your LAN multiplayer gaming experience! 🎯✨

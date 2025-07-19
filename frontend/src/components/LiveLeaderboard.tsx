@@ -12,7 +12,7 @@ interface LiveLeaderboardProps {
 export const LiveLeaderboard: React.FC<LiveLeaderboardProps> = memo(({
   players,
   playerId,
-  leftPlayers: _leftPlayers, // Keep for compatibility but don't use for display
+  leftPlayers: _leftPlayers, // eslint-disable-line @typescript-eslint/no-unused-vars
   roundHistory = [], // Default to empty array
   onLeaveRoom
 }) => {

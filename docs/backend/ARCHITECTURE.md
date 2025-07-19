@@ -6,20 +6,19 @@ The backend has been refactored from a monolithic `server.js` file into a clean,
 
 ```
 backend/
-├── 📁 config/
-│   └── constants.js           # Game constants & configuration
-├── 📁 handlers/
-│   └── socketHandlers.js      # Socket.io event handlers
-├── 📁 models/
-│   └── GameRoom.js            # Game room class & logic
-├── 📁 routes/
-│   └── api.js                 # REST API endpoints
-├── 📁 services/
-│   └── BotAI.js              # AI bot intelligence service
-├── 📁 utils/
-│   └── gameUtils.js          # Utility functions
-├── server.js                 # Main server file (simplified)
-└── server-legacy-backup.js  # Original monolithic file (backup)
+├── config/
+│   └── constants.js          # Game configuration constants
+├── handlers/
+│   └── socketHandlers.js     # Socket.IO event handlers
+├── models/
+│   └── GameRoom.js          # Game room model and logic
+├── routes/
+│   └── api.js               # REST API routes
+├── services/
+│   └── BotAI.js            # AI bot implementation
+├── utils/
+│   └── gameUtils.js        # Game utility functions
+└── server.js               # Main server file
 ```
 
 ## 🎯 Module Responsibilities
@@ -199,11 +198,7 @@ test('Create room endpoint', async () => {
 ## 🔄 Migration Notes
 
 ### From Old Structure
-The old monolithic `server.js` (now `server-legacy-backup.js`) contained:
-- 852 lines of mixed concerns
-- Game logic, AI logic, and network handling combined
-- Difficult to test and maintain
-- Hard to scale individual components
+The modular approach breaks the game server into focused, single-responsibility modules.
 
 ### To New Structure
 - Reduced main server to ~180 lines

@@ -54,9 +54,9 @@ export const HomePage: React.FC<HomePageProps> = ({ onRoomCreated, onRoomJoined 
       const response = await apiService.createRoom(playerName.trim());
       console.log('Room created successfully:', response);
       onRoomCreated(response.roomId, response.playerId);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error creating room:', err);
-      setError(err.message || 'Failed to create room. Please try again.');
+      setError(err instanceof Error ? err.message : 'Failed to create room. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -79,8 +79,8 @@ export const HomePage: React.FC<HomePageProps> = ({ onRoomCreated, onRoomJoined 
     try {
       const response = await apiService.joinRoom(roomCode.trim().toUpperCase(), playerName.trim());
       onRoomJoined(roomCode.trim().toUpperCase(), response.playerId);
-    } catch (err: any) {
-      setError(err.message || 'Failed to join room. Please check the room code.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to join room. Please check the room code.');
     } finally {
       setLoading(false);
     }

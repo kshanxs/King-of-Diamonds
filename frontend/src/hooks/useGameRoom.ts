@@ -69,7 +69,7 @@ export const useGameRoom = (roomId: string, playerId: string) => {
       setReadyCount(0);
       setTotalReadyPlayers(0);
       setChosenCount(0);
-      const activePlayers = data.players.filter((p: any) => !p.isEliminated);
+      const activePlayers = data.players.filter((p: { isEliminated?: boolean }) => !p.isEliminated);
       setTotalActivePlayers(activePlayers.length);
     });
 

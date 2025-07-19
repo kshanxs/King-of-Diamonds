@@ -81,9 +81,9 @@ export const LiveLeaderboard: React.FC<LiveLeaderboardProps> = memo(({
                 .findIndex(p => p.id === player.id);
             }
             
-            // Get player's point history
-            const pointHistory = getPlayerPointHistory(player.name);
-            
+            // Get player's point history and filter out zeros (no point change)
+            const pointHistory = getPlayerPointHistory(player.name).filter(change => change !== 0);
+
             return (
               <div
                 key={player.id}
@@ -136,13 +136,13 @@ export const LiveLeaderboard: React.FC<LiveLeaderboardProps> = memo(({
                         }`}>
                           Score: {player.score}
                         </p>
-                        {/* Point History Display: Only show non-zero changes */}
-                        {pointHistory.filter(pt => pt !== 0).length > 0 && (
+                        {/* Point History Display */}
+                        {pointHistory.length > 0 && (
                           <p className={`text-sm ${
                             isActuallyLeft ? 'text-gray-500' :
                             player.isEliminated ? 'text-red-400' : 'text-white/70'
                           }`}>
-                            ({pointHistory.filter(pt => pt !== 0).join(', ')})
+                            ({pointHistory.join(', ')})
                           </p>
                         )}
                       </div>

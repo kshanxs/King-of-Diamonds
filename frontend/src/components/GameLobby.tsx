@@ -111,60 +111,80 @@ export const GameLobby: React.FC<GameLobbyProps> = memo(({
         <div className="flex items-center justify-center space-x-2 mb-2">
           <span className="text-white/70">Room Code:</span>
           <span className="font-mono font-bold text-diamond-300 text-lg">{roomId}</span>
-        </div>
-
-        {/* Bot Assignment Toggle - Only for multiplayer and host */}
-        {isHost && playersCount > 1 && (
-          <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/10">
-            <div className="text-left">
-              <div className="text-white/90 text-sm">Bot Replacement</div>
-              <div className="text-white/50 text-xs">
-                {botAssignmentEnabled ? "Bots replace leavers" : "Leavers grayed out"}
-              </div>
-            </div>
-            <button
-              onClick={() => {
-                const newValue = !botAssignmentEnabled;
-                console.log(`🎮 GameLobby: Toggle clicked.`);
-                console.log(`🎮   Current botAssignmentEnabled: ${botAssignmentEnabled}`);
-                console.log(`🎮   New value to send: ${newValue}`);
-                console.log(`🎮   Calling onToggleBotAssignment with: ${newValue}`);
-                onToggleBotAssignment(newValue);
-              }}
-              className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-                botAssignmentEnabled ? 'bg-diamond-500' : 'bg-white/20'
-              }`}
-            >
-              <span
-                className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
-                  botAssignmentEnabled ? 'translate-x-5' : 'translate-x-1'
-                }`}
-              />
-            </button>
-          </div>
-        )}
-
-        {/* Single Copy Button */}
-        <div className="flex justify-center mt-3">
           <button
             onClick={handleCopyRoomInfo}
-            className={`px-4 py-2 rounded-lg text-white transition-all duration-200 ${
+            className={`ml-2 p-1 rounded-md transition-all duration-200 ${
               copySuccess 
                 ? 'bg-green-500/30 text-green-200' 
-                : 'bg-white/10 hover:bg-white/20'
+                : 'bg-white/10 hover:bg-white/20 text-white/70 hover:text-white'
             }`}
             title="Copy room information"
           >
-            {copySuccess ? '✅ Copied!' : '📋 Copy Room Info'}
+            {copySuccess ? '✅' : '📋'}
           </button>
         </div>
+
+        {/* Unified Bot Assignment Control - Only for multiplayer */}
+        {playersCount > 1 && (
+          <div className="flex flex-col items-center mt-2 mb-3">
+            {/* Status Indicator with Toggle (for hosts) or just display (for non-hosts) */}
+            <div className={`flex items-center justify-between px-3 py-2 bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 w-full max-w-sm ${
+              isHost ? 'sm:min-w-[280px]' : 'sm:min-w-[200px]'
+            }`}>
+              {/* Left side - Status indicator */}
+              <div className="flex items-center space-x-2">
+                <div className={`w-2.5 h-2.5 rounded-full ${
+                  botAssignmentEnabled 
+                    ? 'bg-green-400 shadow-lg shadow-green-400/50 animate-pulse' 
+                    : 'bg-orange-400 shadow-lg shadow-orange-400/50'
+                }`}></div>
+                <span className="text-white/80 text-sm font-medium">
+                  {botAssignmentEnabled ? "Bot Replace ON" : "Bot Replace OFF"}
+                </span>
+              </div>
+
+              {/* Right side - Toggle control (only for host) */}
+              {isHost && (
+                <div className="flex items-center space-x-2">
+                  <span className="text-white/60 text-xs hidden sm:inline">⚙️</span>
+                  <button
+                    onClick={() => {
+                      const newValue = !botAssignmentEnabled;
+                      console.log(`🎮 GameLobby: Toggle clicked.`);
+                      console.log(`🎮   Current botAssignmentEnabled: ${botAssignmentEnabled}`);
+                      console.log(`🎮   New value to send: ${newValue}`);
+                      console.log(`🎮   Calling onToggleBotAssignment with: ${newValue}`);
+                      onToggleBotAssignment(newValue);
+                    }}
+                    className={`relative inline-flex h-4 w-7 items-center rounded-full transition-all duration-300 backdrop-blur-sm border ${
+                      botAssignmentEnabled 
+                        ? 'bg-gradient-to-r from-diamond-400/80 to-diamond-500/80 border-diamond-300/50 shadow-lg shadow-diamond-500/25' 
+                        : 'bg-white/20 border-white/30 hover:bg-white/30'
+                    }`}
+                    title={`${botAssignmentEnabled ? 'Disable' : 'Enable'} bot replacement`}
+                  >
+                    <span
+                      className={`inline-block h-2.5 w-2.5 transform rounded-full bg-white transition-all duration-300 shadow-sm ${
+                        botAssignmentEnabled ? 'translate-x-3.5' : 'translate-x-0.5'
+                      }`}
+                    />
+                  </button>
+                </div>
+              )}
+            </div>
+            
+            {/* Description - more concise for mobile */}
+            <div className="text-white/50 text-xs mt-2 text-center max-w-xs px-2">
+              {botAssignmentEnabled 
+                ? "Bots replace players who leave mid-game" 
+                : "Players who leave will not be replaced"}
+            </div>
+          </div>
+        )}
 
         {/* LAN Info and QR Code */}
         {!networkInfo.isLocal && (
           <div className="space-y-2 mt-4">
-            <div className="text-xs text-white/50">
-              LAN URL: {networkInfo.frontendURL}
-            </div>
             <div className="flex justify-center">
               <button
                 onClick={() => setShowQR(!showQR)}
@@ -172,6 +192,9 @@ export const GameLobby: React.FC<GameLobbyProps> = memo(({
               >
                 {showQR ? '❌ Hide QR' : '📱 Show QR Code'}
               </button>
+            </div>
+            <div className="text-xs text-white/50">
+              LAN URL: {networkInfo.frontendURL}
             </div>
             
             {showQR && (
@@ -206,7 +229,7 @@ export const GameLobby: React.FC<GameLobbyProps> = memo(({
                   onClick={onStartGame}
                   className="glass-button text-xl px-8 py-4 !bg-diamond-500/20 hover:!bg-diamond-500/30"
                 >
-                  Start Solo (With AI Opponents)
+                  Start Solo Game
                 </button>
                 <button
                   onClick={onLeaveRoom}

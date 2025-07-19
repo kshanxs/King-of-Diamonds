@@ -118,7 +118,8 @@ export const LiveLeaderboard: React.FC<LiveLeaderboardProps> = memo(({
                         {/* Show original name if player left and bot was assigned */}
                         {player.originalName ? player.originalName : player.name}
                         {player.id === playerId && ' (You)'}
-                        {hasLeft && ' 👋 (Left)'}
+                        {isActuallyLeft && ' 👋'}
+                        {player.isEliminated && ' 💀'}
                       </p>
                       
                       {/* Show assigned bot name if applicable */}
@@ -147,10 +148,8 @@ export const LiveLeaderboard: React.FC<LiveLeaderboardProps> = memo(({
                       </div>
                     </div>
                   </div>
-                  {isActuallyLeft ? (
+                  {isActuallyLeft && (
                     <span className="text-gray-400 font-bold text-sm">LEFT</span>
-                  ) : player.isEliminated && (
-                    <span className="text-red-400 font-bold text-sm">ELIMINATED</span>
                   )}
                 </div>
               </div>

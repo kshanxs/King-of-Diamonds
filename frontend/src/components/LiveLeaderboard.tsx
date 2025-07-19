@@ -136,13 +136,13 @@ export const LiveLeaderboard: React.FC<LiveLeaderboardProps> = memo(({
                         }`}>
                           Score: {player.score}
                         </p>
-                        {/* Point History Display */}
-                        {pointHistory.length > 0 && (
+                        {/* Point History Display: Only show non-zero changes */}
+                        {pointHistory.filter(pt => pt !== 0).length > 0 && (
                           <p className={`text-sm ${
                             isActuallyLeft ? 'text-gray-500' :
                             player.isEliminated ? 'text-red-400' : 'text-white/70'
                           }`}>
-                            ({pointHistory.join(', ')})
+                            ({pointHistory.filter(pt => pt !== 0).join(', ')})
                           </p>
                         )}
                       </div>

@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import QRCode from 'qrcode';
 import { apiService } from '../services/apiService';
-import { NetworkDiscovery } from './NetworkDiscovery';
 
 interface HomePageProps {
   onRoomCreated: (roomId: string, playerId: string) => void;
@@ -14,7 +14,15 @@ export const HomePage: React.FC<HomePageProps> = ({ onRoomCreated, onRoomJoined 
   const [roomCode, setRoomCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [networkIP, setNetworkIP] = useState<string>('');
+  const [showQRPopup, setShowQRPopup] = useState(false);
+  const [qrCodeDataURL, setQRCodeDataURL] = useState<string>('');
+
+  // Get network info on mount
+  useEffect(() => {
+    const localIP = window.location.hostname;
+    setNetworkIP(localIP);
+  }, []);
 
   // Check for room parameter in URL
   React.useEffect(() => {
@@ -40,6 +48,29 @@ export const HomePage: React.FC<HomePageProps> = ({ onRoomCreated, onRoomJoined 
     } catch (err) {
       console.error('Failed to paste from clipboard:', err);
     }
+  };
+
+  const handleShowQR = async () => {
+    try {
+      const currentURL = window.location.origin + window.location.pathname;
+      const qrData = await QRCode.toDataURL(currentURL, {
+        width: 300,
+        margin: 2,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF'
+        }
+      });
+      setQRCodeDataURL(qrData);
+      setShowQRPopup(true);
+    } catch (err) {
+      console.error('Failed to generate QR code:', err);
+    }
+  };
+
+  const handleCloseQR = () => {
+    setShowQRPopup(false);
+    setQRCodeDataURL('');
   };
 
   const handleCreateRoom = async () => {
@@ -130,23 +161,29 @@ export const HomePage: React.FC<HomePageProps> = ({ onRoomCreated, onRoomJoined 
 
           {/* Primary Actions */}
           <div className="space-y-4">
-            <button
-              onClick={handleCreateRoom}
-              disabled={loading}
-              className="glass-button w-full text-lg font-bold disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? 'Creating...' : '🎮 Create Game'}
-            </button>
+            {/* Only show Create Game button if no room code is entered */}
+            {!roomCode.trim() && (
+              <>
+                <button
+                  onClick={handleCreateRoom}
+                  disabled={loading}
+                  className="glass-button w-full text-lg font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loading ? 'Creating...' : '🎮 Create Game'}
+                </button>
 
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-white/20"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-transparent text-white/50">OR</span>
-              </div>
-            </div>
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-white/20"></div>
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="px-4 bg-transparent text-white/50">OR</span>
+                  </div>
+                </div>
+              </>
+            )}
 
+            {/* Join Game Section */}
             <div className="space-y-3">
               <div className="flex items-center space-x-2">
                 <input
@@ -165,48 +202,77 @@ export const HomePage: React.FC<HomePageProps> = ({ onRoomCreated, onRoomJoined 
                   📋
                 </button>
               </div>
+              <div className="flex space-x-3">
+                <button
+                  onClick={handleJoinRoom}
+                  disabled={loading}
+                  className="glass-button w-full text-lg font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loading ? 'Joining...' : '🚪 Join Game'}
+                </button>
+              </div>
+            </div>
+
+            {/* Network IP Display with QR Button */}
+            <div className="text-center">
+              <div className="flex items-center justify-center space-x-3">
+                <p className="text-white/50 text-base">
+                  Network IP: <span className="text-white/70 font-mono">{networkIP}</span>
+                </p>
+                <button
+                  onClick={handleShowQR}
+                  className="px-4 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-all duration-200 text-white hover:text-diamond-300 text-sm font-medium"
+                  title="Show QR Code for Home Invite"
+                >
+                  📱 QR Invite
+                </button>
+              </div>
+              {(networkIP === 'localhost' || networkIP === '127.0.0.1') && (
+                <span className="text-orange-400 text-xs block mt-1">
+                  LAN scanning disabled on localhost
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* QR Code Popup */}
+        {showQRPopup && (
+          <div 
+            className="fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center z-50 p-4"
+            onClick={handleCloseQR}
+          >
+            <div 
+              className="glass-card max-w-md w-full p-6 text-center animate-scale-in"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-xl font-bold text-white mb-4">
+                📱 Home Invite QR Code
+              </h3>
+              
+              {qrCodeDataURL && (
+                <div className="bg-white p-4 rounded-xl mb-4 inline-block">
+                  <img 
+                    src={qrCodeDataURL} 
+                    alt="QR Code for Home Invite" 
+                    className="w-64 h-64 mx-auto"
+                  />
+                </div>
+              )}
+              
+              <p className="text-white/70 text-sm mb-4">
+                Scan this QR code to quickly access King of Diamonds
+              </p>
+              
               <button
-                onClick={handleJoinRoom}
-                disabled={loading}
-                className="glass-button w-full text-lg font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={handleCloseQR}
+                className="glass-button w-full"
               >
-                {loading ? 'Joining...' : '🚪 Join Game'}
+                🏠 Return Home
               </button>
             </div>
           </div>
-
-          {/* Advanced Options Toggle */}
-          <div className="border-t border-white/20 pt-4">
-            <button
-              onClick={() => setShowAdvanced(!showAdvanced)}
-              className="w-full text-center text-white/60 hover:text-white/80 transition-colors duration-200 text-sm"
-            >
-              {showAdvanced ? '▼' : '▶'} Advanced Options
-            </button>
-          </div>
-
-          {/* Advanced Options */}
-          {showAdvanced && (
-            <div className="space-y-4 pt-2">
-              {/* Network Discovery */}
-              <div>
-                <h3 className="text-white font-semibold mb-3">🏠 LAN Multiplayer</h3>
-                <NetworkDiscovery />
-              </div>
-
-              {/* Game Rules */}
-              <div className="p-4 bg-white/5 rounded-xl">
-                <h3 className="text-white font-semibold mb-2">How to Play:</h3>
-                <ul className="text-white/70 text-sm space-y-1">
-                  <li>• Choose a number from 0-100 each round</li>
-                  <li>• Get closest to target (average × 0.8) to win</li>
-                  <li>• Lose points if you don't win</li>
-                  <li>• Last player standing wins!</li>
-                </ul>
-              </div>
-            </div>
-          )}
-        </div>
+        )}
       </div>
     </div>
   );

@@ -18,6 +18,8 @@ interface GameRoomProps {
 }
 
 export const GameRoom: React.FC<GameRoomProps> = ({ roomId, playerId, onLeaveRoom }) => {
+  console.log('🎮 GameRoom rendering with:', { roomId, playerId });
+  
   const {
     gameState,
     selectedNumber,
@@ -34,9 +36,12 @@ export const GameRoom: React.FC<GameRoomProps> = ({ roomId, playerId, onLeaveRoo
     readyCount,
     totalReadyPlayers,
     leftPlayers,
+    botAssignmentEnabled,
+    isHost,
     handleStartGame,
     handleNumberSelect,
     handleContinueClick,
+    handleToggleBotAssignment,
     formatTime
   } = useGameRoom(roomId, playerId);
 
@@ -46,16 +51,23 @@ export const GameRoom: React.FC<GameRoomProps> = ({ roomId, playerId, onLeaveRoo
   };
 
   if (!gameState) {
+    console.log('⚠️ GameRoom: No gameState, showing loading...');
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="glass-card p-8">
           <LoadingSpinner text="Connecting to game room..." />
+          <div className="mt-4 text-center">
+            <button 
+              onClick={handleLeaveRoom}
+              className="glass-button text-sm px-4 py-2 !bg-red-500/20 hover:!bg-red-500/30"
+            >
+              ← Back to Home
+            </button>
+          </div>
         </div>
       </div>
     );
   }
-
-  const isHost = gameState.players[0]?.id === playerId;
 
   return (
     <div className="min-h-screen p-4">
@@ -86,8 +98,10 @@ export const GameRoom: React.FC<GameRoomProps> = ({ roomId, playerId, onLeaveRoo
             playersCount={gameState.players.length}
             isHost={isHost}
             roomId={roomId}
+            botAssignmentEnabled={botAssignmentEnabled}
             onStartGame={handleStartGame}
             onLeaveRoom={handleLeaveRoom}
+            onToggleBotAssignment={handleToggleBotAssignment}
           />
         )}
 
@@ -127,6 +141,7 @@ export const GameRoom: React.FC<GameRoomProps> = ({ roomId, playerId, onLeaveRoo
             winner={gameFinishedData.winner}
             finalScores={gameFinishedData.finalScores}
             onNewGame={handleLeaveRoom}
+            reason={gameFinishedData.reason}
           />
         )}
       </div>

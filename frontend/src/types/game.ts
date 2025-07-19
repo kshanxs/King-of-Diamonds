@@ -7,6 +7,8 @@ export interface Player {
   hasLeft?: boolean;
   currentChoice?: number;
   hasChosenThisRound?: boolean;
+  originalName?: string;
+  assignedBotName?: string;
 }
 
 export interface RoundResult {
@@ -35,12 +37,19 @@ export interface GameState {
   timeLeft?: number;
   chosenCount?: number;
   totalActivePlayers?: number;
+  botAssignmentEnabled?: boolean;
+  isHost?: boolean;
 }
 
 export interface SocketEvents {
   roomJoined: (data: GameState) => void;
   playerJoined: (data: { players: Player[] }) => void;
-  playerLeft: (data: { players: Player[] }) => void;
+  playerLeft: (data: { 
+    players: Player[]; 
+    leftPlayerId: string; 
+    leftPlayerName: string;
+    assignedBotName?: string;
+  }) => void;
   gameStarting: () => void;
   countdown: (count: number) => void;
   newRound: (data: { round: number; activeRules: string[]; players: Player[] }) => void;
@@ -55,6 +64,7 @@ export interface SocketEvents {
     timestamp?: number; 
   }) => void;
   roundResult: (result: RoundResult) => void;
-  gameFinished: (data: { winner: string; finalScores: Player[] }) => void;
+  gameFinished: (data: { winner: string; finalScores: Player[]; reason?: string }) => void;
+  botAssignmentChanged: (data: { enabled: boolean }) => void;
   error: (message: string) => void;
 }

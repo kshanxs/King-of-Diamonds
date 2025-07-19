@@ -6,17 +6,23 @@ interface GameLobbyProps {
   playersCount: number;
   isHost: boolean;
   roomId: string;
+  botAssignmentEnabled: boolean;
   onStartGame: () => void;
   onLeaveRoom: () => void;
+  onToggleBotAssignment: (enabled: boolean) => void;
 }
 
 export const GameLobby: React.FC<GameLobbyProps> = memo(({
   playersCount,
   isHost,
   roomId,
+  botAssignmentEnabled,
   onStartGame,
-  onLeaveRoom
+  onLeaveRoom,
+  onToggleBotAssignment
 }) => {
+  console.log(`🎮 GameLobby rendering with botAssignmentEnabled: ${botAssignmentEnabled}`);
+  
   const [showQR, setShowQR] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
   const [qrLoading, setQrLoading] = useState(false);
@@ -106,6 +112,37 @@ export const GameLobby: React.FC<GameLobbyProps> = memo(({
           <span className="text-white/70">Room Code:</span>
           <span className="font-mono font-bold text-diamond-300 text-lg">{roomId}</span>
         </div>
+
+        {/* Bot Assignment Toggle - Only for multiplayer and host */}
+        {isHost && playersCount > 1 && (
+          <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/10">
+            <div className="text-left">
+              <div className="text-white/90 text-sm">Bot Replacement</div>
+              <div className="text-white/50 text-xs">
+                {botAssignmentEnabled ? "Bots replace leavers" : "Leavers grayed out"}
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                const newValue = !botAssignmentEnabled;
+                console.log(`🎮 GameLobby: Toggle clicked.`);
+                console.log(`🎮   Current botAssignmentEnabled: ${botAssignmentEnabled}`);
+                console.log(`🎮   New value to send: ${newValue}`);
+                console.log(`🎮   Calling onToggleBotAssignment with: ${newValue}`);
+                onToggleBotAssignment(newValue);
+              }}
+              className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                botAssignmentEnabled ? 'bg-diamond-500' : 'bg-white/20'
+              }`}
+            >
+              <span
+                className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+                  botAssignmentEnabled ? 'translate-x-5' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
+        )}
 
         {/* Single Copy Button */}
         <div className="flex justify-center mt-3">

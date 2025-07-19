@@ -80,6 +80,18 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Connection test endpoint for debugging
+app.get('/test-connection', (req, res) => {
+  res.status(200).json({
+    message: 'Backend server is reachable',
+    timestamp: new Date().toISOString(),
+    clientIP: req.ip,
+    headers: req.headers,
+    corsOrigin: SERVER_CONFIG.CORS_ORIGIN,
+    port: SERVER_CONFIG.PORT
+  });
+});
+
 // API routes
 app.use('/api', apiRoutes);
 

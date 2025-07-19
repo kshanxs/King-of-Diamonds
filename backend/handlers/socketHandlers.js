@@ -34,17 +34,21 @@ function initializeSocketHandlers(io, rooms, playerSockets) {
             score: p.score,
             isEliminated: p.isEliminated,
             isBot: p.isBot,
-            hasLeft: p.hasLeft || false
+            hasLeft: p.hasLeft || false,
+            originalName: p.originalName,
+            assignedBotName: p.assignedBotName
           })),
           gameState: room.gameState,
           currentRound: room.currentRound,
           activeRules: room.getActiveRules(),
-          roundHistory: room.roundHistory
+          roundHistory: room.roundHistory,
+          botAssignmentEnabled: room.botAssignmentEnabled,
+          isHost: room.hostId === playerId
         });
 
         // Send current choice count if game is playing
         if (room.gameState === 'playing') {
-          const activePlayers = Array.from(room.players.values()).filter(p => !p.isEliminated);
+          const activePlayers = room.getActivePlayers();
           const chosenCount = activePlayers.filter(p => p.hasChosenThisRound).length;
           socket.emit('choiceUpdate', {
             chosenCount,
@@ -60,7 +64,9 @@ function initializeSocketHandlers(io, rooms, playerSockets) {
             score: p.score,
             isEliminated: p.isEliminated,
             isBot: p.isBot,
-            hasLeft: p.hasLeft || false
+            hasLeft: p.hasLeft || false,
+            originalName: p.originalName,
+            assignedBotName: p.assignedBotName
           }))
         });
 
@@ -82,6 +88,12 @@ function initializeSocketHandlers(io, rooms, playerSockets) {
           return;
         }
 
+        // Prevent starting game if already in progress
+        if (room.gameState !== 'waiting') {
+          socket.emit('error', 'Game already in progress');
+          return;
+        }
+
         // Fill with bots if needed
         room.fillWithBots();
         
@@ -94,6 +106,51 @@ function initializeSocketHandlers(io, rooms, playerSockets) {
         }
       } catch (error) {
         console.error('❌ Error in startGame:', error);
+        socket.emit('error', 'Internal server error');
+      }
+    });
+
+    /**
+     * Handle bot assignment toggle (admin only)
+     */
+    socket.on('toggleBotAssignment', ({ roomId, playerId, enabled }) => {
+      try {
+        console.log(`🎮 Toggle bot assignment request: roomId=${roomId}, playerId=${playerId}, enabled=${enabled}`);
+        
+        const room = rooms.get(roomId);
+        if (!room) {
+          console.log(`❌ Room ${roomId} not found`);
+          socket.emit('error', 'Room not found');
+          return;
+        }
+        
+        if (!room.players.has(playerId)) {
+          console.log(`❌ Player ${playerId} not found in room ${roomId}`);
+          socket.emit('error', 'Player not found in room');
+          return;
+        }
+        
+        if (room.hostId !== playerId) {
+          console.log(`❌ Player ${playerId} is not host of room ${roomId}. Host is: ${room.hostId}`);
+          socket.emit('error', 'Not authorized to change bot assignment settings');
+          return;
+        }
+
+        // Only allow changes in waiting state
+        if (room.gameState !== 'waiting') {
+          console.log(`❌ Cannot change bot assignment in room ${roomId} - game state is: ${room.gameState}`);
+          socket.emit('error', 'Cannot change bot assignment settings during game');
+          return;
+        }
+
+        console.log(`✅ Setting bot assignment to ${enabled} in room ${roomId}`);
+        room.setBotAssignmentEnabled(enabled);
+        
+        // Notify all players in the room about the setting change
+        io.to(roomId).emit('botAssignmentChanged', { enabled });
+        console.log(`🎮 Bot assignment ${enabled ? 'enabled' : 'disabled'} in room ${roomId} by ${playerId}`);
+      } catch (error) {
+        console.error('❌ Error in toggleBotAssignment:', error);
         socket.emit('error', 'Internal server error');
       }
     });
@@ -165,10 +222,13 @@ function initializeSocketHandlers(io, rooms, playerSockets) {
             name: p.name,
             score: p.score,
             isEliminated: p.isEliminated,
-            isBot: p.isBot
+            isBot: p.isBot,
+            originalName: p.originalName,
+            assignedBotName: p.assignedBotName
           })),
           activeRules: room.getActiveRules(),
-          roundHistory: room.roundHistory
+          roundHistory: room.roundHistory,
+          botAssignmentEnabled: room.botAssignmentEnabled
         });
       } catch (error) {
         console.error('❌ Error in getRoomInfo:', error);
@@ -204,20 +264,31 @@ function initializeSocketHandlers(io, rooms, playerSockets) {
                   rooms.delete(roomId);
                   console.log(`🗑️ Room ${roomId} deleted (empty)`);
                 } else {
+                  // Get updated player after bot assignment
+                  const updatedPlayer = room.players.get(playerId);
+                  
                   // Notify other players
                   io.to(roomId).emit('playerLeft', {
                     leftPlayerId: disconnectedPlayer.id,
                     leftPlayerName: disconnectedPlayer.name,
+                    assignedBotName: updatedPlayer ? updatedPlayer.assignedBotName : null,
                     players: Array.from(room.players.values()).map(p => ({
                       id: p.id,
                       name: p.name,
                       score: p.score,
                       isEliminated: p.isEliminated,
                       isBot: p.isBot,
-                      hasLeft: p.hasLeft || false
+                      hasLeft: p.hasLeft || false,
+                      originalName: p.originalName,
+                      assignedBotName: p.assignedBotName
                     }))
                   });
-                  console.log(`📤 Player ${playerId} left room ${roomId}`);
+                  
+                  if (updatedPlayer && updatedPlayer.assignedBotName) {
+                    console.log(`📤 Player ${playerId} left room ${roomId}, bot "${updatedPlayer.assignedBotName}" assigned`);
+                  } else {
+                    console.log(`📤 Player ${playerId} left room ${roomId}`);
+                  }
                 }
                 break;
               }

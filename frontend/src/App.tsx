@@ -14,12 +14,41 @@ const STORAGE_KEYS = {
 };
 
 function App() {
+  console.log('🎮 App component rendering...');
+  
+  // Debug: Clear potentially stale localStorage data
+  useEffect(() => {
+    const debugMode = true; // Set to false in production
+    if (debugMode) {
+      console.log('🔧 DEBUG MODE: Checking localStorage...');
+      const storedState = localStorage.getItem(STORAGE_KEYS.CURRENT_STATE);
+      const storedRoomId = localStorage.getItem(STORAGE_KEYS.ROOM_ID);
+      const storedPlayerId = localStorage.getItem(STORAGE_KEYS.PLAYER_ID);
+      
+      console.log('📱 Stored data:', { storedState, storedRoomId, storedPlayerId });
+      
+      // If we have game state but no room/player, clear it
+      if (storedState === 'game' && (!storedRoomId || !storedPlayerId)) {
+        console.log('🧹 Cleaning up inconsistent localStorage data');
+        localStorage.removeItem(STORAGE_KEYS.CURRENT_STATE);
+        localStorage.removeItem(STORAGE_KEYS.ROOM_ID);
+        localStorage.removeItem(STORAGE_KEYS.PLAYER_ID);
+      }
+    }
+  }, []);
+  
   // Initialize state from localStorage or defaults
   const [currentState, setCurrentState] = useState<AppState>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.CURRENT_STATE);
-      return (saved as AppState) || 'home';
+      console.log('📱 Loaded currentState from localStorage:', saved);
+      
+      // Force reset to home for debugging
+      console.log('🔧 DEBUG: Forcing state to home');
+      return 'home';
+      
     } catch {
+      console.log('📱 Using default currentState: home');
       return 'home';
     }
   });
@@ -98,6 +127,8 @@ function App() {
       console.warn('Failed to clear game state from localStorage:', error);
     }
   };
+
+  console.log('🎯 About to render App with currentState:', currentState);
 
   return (
     <Router>

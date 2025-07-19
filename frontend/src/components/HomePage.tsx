@@ -8,6 +8,8 @@ interface HomePageProps {
 }
 
 export const HomePage: React.FC<HomePageProps> = ({ onRoomCreated, onRoomJoined }) => {
+  console.log('🏠 HomePage component rendering...');
+  
   const [playerName, setPlayerName] = useState('');
   const [roomCode, setRoomCode] = useState('');
   const [loading, setLoading] = useState(false);

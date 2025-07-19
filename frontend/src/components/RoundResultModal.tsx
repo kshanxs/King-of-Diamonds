@@ -21,6 +21,14 @@ export const RoundResultModal: React.FC<RoundResultModalProps> = ({
   const [hasClicked, setHasClicked] = React.useState(false);
   const [isVisible, setIsVisible] = React.useState(false);
   
+  // Prevent body scroll when modal is open
+  React.useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, []);
+  
   // Show modal with animation
   React.useEffect(() => {
     const timer = setTimeout(() => setIsVisible(true), 50);

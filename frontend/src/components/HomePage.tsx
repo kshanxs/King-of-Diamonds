@@ -14,6 +14,17 @@ export const HomePage: React.FC<HomePageProps> = ({ onRoomCreated, onRoomJoined 
   const [error, setError] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
 
+  // Check for room parameter in URL
+  React.useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomParam = urlParams.get('room');
+    if (roomParam && roomParam.length === 6) {
+      setRoomCode(roomParam.toUpperCase());
+      // Clear the URL parameter after extracting it
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
+
   const handlePasteRoomCode = async () => {
     try {
       const text = await navigator.clipboard.readText();

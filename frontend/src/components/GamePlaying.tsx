@@ -10,7 +10,6 @@ interface GamePlayingProps {
   chosenCount: number;
   totalActivePlayers: number;
   lastChoiceUpdate: {playerType: string; timestamp: number} | null;
-  roomId?: string; // Add room ID prop
   onNumberSelect: (number: number) => void;
   formatTime: (seconds: number) => string;
 }
@@ -23,7 +22,6 @@ export const GamePlaying: React.FC<GamePlayingProps> = ({
   chosenCount,
   totalActivePlayers,
   lastChoiceUpdate,
-  roomId,
   onNumberSelect,
   formatTime
 }) => {
@@ -127,15 +125,6 @@ export const GamePlaying: React.FC<GamePlayingProps> = ({
           </div>
         )}
       </div>
-      
-      {/* Room Code Display */}
-      {roomId && (
-        <div className="text-center mt-4">
-          <p className="text-white/40 text-xs">
-            Room Code: <span className="font-mono text-white/60">{roomId}</span>
-          </p>
-        </div>
-      )}
     </div>
   );
 };

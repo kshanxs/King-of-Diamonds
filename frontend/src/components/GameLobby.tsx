@@ -1,4 +1,5 @@
-import React, { memo, useState } from 'react';
+import React, { memo, useState, useEffect } from 'react';
+import QRCode from 'qrcode';
 import { getLocalNetworkInfo } from '../config/environment';
 
 interface GameLobbyProps {
@@ -17,13 +18,54 @@ export const GameLobby: React.FC<GameLobbyProps> = memo(({
   onLeaveRoom
 }) => {
   const [showQR, setShowQR] = useState(false);
+  const [qrDataUrl, setQrDataUrl] = useState<string>('');
+  const [qrLoading, setQrLoading] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
   const networkInfo = getLocalNetworkInfo();
 
-  const generateQRCode = (text: string) => {
-    const size = 120;
-    return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(text)}`;
-  };
+    // Generate QR code locally for instant display
+  useEffect(() => {
+    const generateQRCode = async () => {
+      if (networkInfo.isLocal) return;
+      
+      setQrLoading(true);
+      try {
+        // Include room code in URL for easier scanning
+        const url = `${networkInfo.frontendURL}?room=${roomId}`;
+        console.log('Generating QR for URL:', url);
+        const dataUrl = await QRCode.toDataURL(url, {
+          width: 120,
+          margin: 2,
+          color: {
+            dark: '#000000',  // Black QR code
+            light: '#ffffff'  // White background
+          }
+        });
+        if (dataUrl && dataUrl.length > 50) { // Basic validation
+          setQrDataUrl(dataUrl);
+          console.log('QR code generated successfully');
+        } else {
+          throw new Error('Invalid QR code generated');
+        }
+      } catch (err) {
+        console.error('QR code generation error:', err);
+        // Fallback to external API if local generation fails
+        try {
+          const fallbackUrl = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(`${networkInfo.frontendURL}?room=${roomId}`)}`;
+          setQrDataUrl(fallbackUrl);
+          console.log('Using fallback QR generation');
+        } catch (fallbackErr) {
+          console.error('Fallback QR generation also failed:', fallbackErr);
+        }
+      } finally {
+        setQrLoading(false);
+      }
+    };
+
+    if (!networkInfo.isLocal) {
+      generateQRCode();
+    }
+  }, [networkInfo.frontendURL, networkInfo.isLocal, roomId]);
 
   const handleCopyRoomInfo = async () => {
     try {
@@ -97,11 +139,21 @@ export const GameLobby: React.FC<GameLobbyProps> = memo(({
             
             {showQR && (
               <div className="mt-3 flex justify-center">
-                <img
-                  src={generateQRCode(networkInfo.frontendURL)}
-                  alt="QR Code for LAN connection"
-                  className="rounded-lg"
-                />
+                {qrLoading ? (
+                  <div className="w-[120px] h-[120px] bg-white/10 rounded-lg flex items-center justify-center">
+                    <div className="animate-spin w-6 h-6 border-2 border-white border-t-transparent rounded-full"></div>
+                  </div>
+                ) : qrDataUrl ? (
+                  <img
+                    src={qrDataUrl}
+                    alt="QR Code for LAN connection"
+                    className="rounded-lg"
+                  />
+                ) : (
+                  <div className="w-[120px] h-[120px] bg-white/10 rounded-lg flex items-center justify-center text-white/50 text-xs">
+                    QR generation failed
+                  </div>
+                )}
               </div>
             )}
           </div>

@@ -68,6 +68,15 @@ export const GameRoom: React.FC<GameRoomProps> = ({ roomId, playerId, onLeaveRoo
           onLeaveRoom={handleLeaveRoom}
         />
 
+        {/* Room Code Display - positioned below LiveLeaderboard */}
+        {gameState.gameState !== 'waiting' && (
+          <div className="text-center">
+            <p className="text-white/40 text-xs">
+              Room Code: <span className="font-mono text-white/60">{roomId}</span>
+            </p>
+          </div>
+        )}
+
         {gameState.gameState === 'playing' && (
           <ActiveRules activeRules={gameState.activeRules} />
         )}
@@ -95,7 +104,6 @@ export const GameRoom: React.FC<GameRoomProps> = ({ roomId, playerId, onLeaveRoo
             chosenCount={chosenCount}
             totalActivePlayers={totalActivePlayers}
             lastChoiceUpdate={lastChoiceUpdate}
-            roomId={roomId}
             onNumberSelect={handleNumberSelect}
             formatTime={formatTime}
           />

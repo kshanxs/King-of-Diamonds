@@ -36,16 +36,18 @@ export const ChoiceProgress: React.FC<ChoiceProgressProps> = memo(({
           ></div>
         </div>
       </div>
-      {chosenCount === totalActivePlayers && totalActivePlayers > 0 && (
-        <p className="text-green-400 text-xs mt-2 animate-bounce">
-          All players ready! Processing round... 🎯
-        </p>
-      )}
-      {lastChoiceUpdate && chosenCount < totalActivePlayers && (
-        <p className="text-blue-300 text-xs mt-1 opacity-75">
-          {lastChoiceUpdate.playerType} just chose! ⚡
-        </p>
-      )}
+      {/* Fixed height container to prevent layout shifts */}
+      <div className="h-6 mt-2 flex items-center justify-center">
+        {chosenCount === totalActivePlayers && totalActivePlayers > 0 ? (
+          <p className="text-green-400 text-xs animate-bounce">
+            All players ready! Processing round... 🎯
+          </p>
+        ) : lastChoiceUpdate && chosenCount < totalActivePlayers ? (
+          <p className="text-blue-300 text-xs opacity-75">
+            {lastChoiceUpdate.playerType} just chose! ⚡
+          </p>
+        ) : null}
+      </div>
     </div>
   );
 });

@@ -1,13 +1,35 @@
 import { io, Socket } from 'socket.io-client';
-import type { SocketEvents } from '../types/game';
+import { SERVER_URL } from '../config/environment';
 
 class SocketService {
   private socket: Socket | null = null;
-  private serverUrl = 'http://localhost:5001';
+  private serverUrl = SERVER_URL;
 
   connect(): Socket {
     if (!this.socket) {
-      this.socket = io(this.serverUrl);
+      console.log(`🔗 Connecting to server: ${this.serverUrl}`);
+      this.socket = io(this.serverUrl, {
+        transports: ['websocket', 'polling'], // Fallback for network issues
+        timeout: 20000,
+        forceNew: true,
+        autoConnect: true,
+        reconnection: true,
+        reconnectionAttempts: 5,
+        reconnectionDelay: 1000
+      });
+
+      // Log connection events for debugging
+      this.socket.on('connect', () => {
+        console.log('✅ Connected to server');
+      });
+
+      this.socket.on('disconnect', (reason) => {
+        console.log('❌ Disconnected from server:', reason);
+      });
+
+      this.socket.on('connect_error', (error) => {
+        console.error('🚫 Connection error:', error);
+      });
     }
     return this.socket;
   }

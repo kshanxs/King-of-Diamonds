@@ -6,13 +6,15 @@ interface LiveLeaderboardProps {
   playerId: string;
   leftPlayers?: Set<string>; // Made optional since we now use hasLeft from backend
   roundHistory?: RoundResult[]; // Add round history to track point changes
+  onLeaveRoom?: () => void; // Add optional leave room handler
 }
 
 export const LiveLeaderboard: React.FC<LiveLeaderboardProps> = memo(({
   players,
   playerId,
   leftPlayers: _leftPlayers, // Keep for compatibility but don't use for display
-  roundHistory = [] // Default to empty array
+  roundHistory = [], // Default to empty array
+  onLeaveRoom
 }) => {
   
   // Function to calculate point changes for a specific player across all rounds
@@ -36,7 +38,17 @@ export const LiveLeaderboard: React.FC<LiveLeaderboardProps> = memo(({
   };
   return (
     <div className="glass-card p-6">
-      <h3 className="text-xl font-bold text-white mb-4">🏆 Live Leaderboard</h3>
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-xl font-bold text-white">🏆 Live Leaderboard</h3>
+        {onLeaveRoom && (
+          <button
+            onClick={onLeaveRoom}
+            className="glass-button px-4 py-2 !bg-red-500/20 hover:!bg-red-500/30 text-sm"
+          >
+            Leave Room
+          </button>
+        )}
+      </div>
       <div className="space-y-3">
         {players
           .sort((a, b) => {

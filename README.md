@@ -138,6 +138,19 @@ Each bot has unique personalities and strategic behaviors:
 - **Player Status Tracking**: See who's ready, who's choosing
 - **Copy Room Codes**: Easy room sharing with one-click copy
 
+### 🧪 Development & Testing
+
+- **Component Testing**: Test individual components during development
+- **Mock Data Support**: Pre-configured test scenarios for development
+- **Browser DevTools**: Built-in debugging and testing capabilities
+
+### 🌐 LAN Multiplayer
+
+- **Network Discovery**: Automatic detection of game servers on local network
+- **QR Code Connection**: Generate QR codes for easy mobile device connection
+- **Cross-Platform**: Play on different devices connected to same WiFi
+- **Health Monitoring**: Real-time server status and connection quality
+
 ### 🎨 Modern UI/UX
 
 - **Glassmorphism Design**: Beautiful, modern card-table aesthetic
@@ -235,6 +248,7 @@ King of Diamonds/
 │   ├── GAME_RULES.md           # Detailed game rules and strategy guide
 │   ├── DEVELOPMENT.md          # Development guide and testing
 │   ├── DEPLOYMENT.md           # Production deployment guide
+│   ├── LAN_SETUP.md            # LAN multiplayer setup and configuration
 │   ├── IMPLEMENTATION_SUMMARY.md # Implementation overview
 │   ├── MATCHMAKING.md          # Matchmaking system documentation
 │   ├── TIMEOUT_ELIMINATION_FEATURE.md # Timeout feature documentation
@@ -307,6 +321,24 @@ King of Diamonds/
 - **Backend Port**: Default 5001 (configurable via PORT environment variable)
 - **Frontend Dev Port**: Default 5173 (Vite default)
 - **CORS Origin**: Currently set to `http://localhost:5173`
+
+### 🏠 LAN Multiplayer Setup
+
+For detailed instructions on setting up LAN multiplayer with automatic network discovery:
+
+**Quick LAN Setup:**
+```bash
+# Run the automated LAN setup script
+./start-lan.sh
+```
+
+**Manual Setup:**
+1. Start backend with network binding: `cd backend && npm start`
+2. Start frontend: `cd frontend && npm run dev`
+3. Connect devices on same network using displayed IP addresses
+4. Use QR codes for easy mobile connection
+
+📖 **Detailed Guide**: See [docs/LAN_SETUP.md](docs/LAN_SETUP.md) for comprehensive LAN setup instructions, troubleshooting, and network configuration.
 
 ## 🎮 How to Play
 

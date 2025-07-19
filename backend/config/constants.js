@@ -37,7 +37,7 @@ const BOT_CONFIG = {
 // Server configuration
 const SERVER_CONFIG = {
   PORT: process.env.PORT || 5001,
-  CORS_ORIGIN: process.env.CORS_ORIGIN || "http://localhost:5173",
+  CORS_ORIGIN: process.env.CORS_ORIGIN || (process.env.NODE_ENV === 'production' ? "http://localhost:5173" : "*"),
   NODE_ENV: process.env.NODE_ENV || 'development'
 };
 

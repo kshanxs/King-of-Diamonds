@@ -2,7 +2,6 @@ import React from 'react';
 import { socketService } from '../services/socketService';
 import { LoadingSpinner } from './LoadingSpinner';
 import { GameFinished } from './GameFinished';
-import { GameHeader } from './GameHeader';
 import { LiveLeaderboard } from './LiveLeaderboard';
 import { ActiveRules } from './ActiveRules';
 import { GameLobby } from './GameLobby';
@@ -38,7 +37,6 @@ export const GameRoom: React.FC<GameRoomProps> = ({ roomId, playerId, onLeaveRoo
     handleStartGame,
     handleNumberSelect,
     handleContinueClick,
-    copyRoomCode,
     formatTime
   } = useGameRoom(roomId, playerId);
 
@@ -62,18 +60,12 @@ export const GameRoom: React.FC<GameRoomProps> = ({ roomId, playerId, onLeaveRoo
   return (
     <div className="min-h-screen p-4">
       <div className="max-w-6xl mx-auto space-y-6">
-        <GameHeader 
-          roomId={roomId}
-          currentRound={gameState.currentRound}
-          onLeaveRoom={handleLeaveRoom}
-          onCopyRoomCode={copyRoomCode}
-        />
-
         <LiveLeaderboard 
           players={gameState.players}
           playerId={playerId}
           leftPlayers={leftPlayers}
           roundHistory={gameState.roundHistory}
+          onLeaveRoom={handleLeaveRoom}
         />
 
         {gameState.gameState === 'playing' && (
@@ -86,6 +78,7 @@ export const GameRoom: React.FC<GameRoomProps> = ({ roomId, playerId, onLeaveRoo
             isHost={isHost}
             roomId={roomId}
             onStartGame={handleStartGame}
+            onLeaveRoom={handleLeaveRoom}
           />
         )}
 
@@ -102,6 +95,7 @@ export const GameRoom: React.FC<GameRoomProps> = ({ roomId, playerId, onLeaveRoo
             chosenCount={chosenCount}
             totalActivePlayers={totalActivePlayers}
             lastChoiceUpdate={lastChoiceUpdate}
+            roomId={roomId}
             onNumberSelect={handleNumberSelect}
             formatTime={formatTime}
           />

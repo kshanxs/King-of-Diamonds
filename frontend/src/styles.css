@@ -80,7 +80,9 @@
   }
   
   .number-button {
-    @apply glass-button text-sm md:text-base hover:bg-diamond-500/30 active:scale-95;
+    @apply glass-button text-xs sm:text-sm md:text-base hover:bg-diamond-500/30 active:scale-95;
+    min-height: 36px; /* Ensure minimum touch target size */
+    min-width: 36px;
   }
   
   .number-button-selected {
@@ -138,6 +140,72 @@
 
 ::-webkit-scrollbar-thumb {
   @apply bg-white/30 rounded-full hover:bg-white/50;
+}
+
+/* Card transition animations */
+.card-slide-in-left {
+  animation: slideInLeft 0.5s ease-out forwards;
+}
+
+.card-slide-in-right {
+  animation: slideInRight 0.5s ease-out forwards;
+}
+
+.card-slide-out-left {
+  animation: slideOutLeft 0.5s ease-in forwards;
+}
+
+.card-slide-out-right {
+  animation: slideOutRight 0.5s ease-in forwards;
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%) scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%) scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutLeft {
+  from {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(-100%) scale(0.95);
+    opacity: 0;
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%) scale(0.95);
+    opacity: 0;
+  }
+}
+
+/* Smooth height transitions */
+.height-transition {
+  transition: height 0.3s ease-in-out;
 }
 
 /* Mobile optimizations for better performance */

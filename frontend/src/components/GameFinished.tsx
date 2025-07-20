@@ -5,23 +5,31 @@ interface GameFinishedProps {
   winner: string;
   finalScores: Player[];
   onNewGame: () => void;
+  reason?: string;
 }
 
 export const GameFinished: React.FC<GameFinishedProps> = ({ 
   winner, 
   finalScores, 
-  onNewGame 
+  onNewGame,
+  reason 
 }) => {
+  const isNoHumansLeft = reason === 'no_humans';
+  
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
       <div className="glass-card p-8 max-w-md w-full text-center">
         <div className="mb-6">
-          <div className="text-6xl mb-4">🏆</div>
+          <div className="text-6xl mb-4">{isNoHumansLeft ? '🤖' : '🏆'}</div>
           <h2 className="text-3xl font-bold text-white mb-2">
             Game Over!
           </h2>
           <p className="text-xl text-diamond-400 font-semibold">
-            Winner: {winner}
+            {isNoHumansLeft ? (
+              <span className="text-orange-400">Game terminated - only bots remaining</span>
+            ) : (
+              <>Winner: {winner}</>
+            )}
           </p>
         </div>
 

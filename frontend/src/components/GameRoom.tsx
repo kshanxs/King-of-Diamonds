@@ -2,7 +2,6 @@ import React from 'react';
 import { socketService } from '../services/socketService';
 import { LoadingSpinner } from './LoadingSpinner';
 import { GameFinished } from './GameFinished';
-import { GameHeader } from './GameHeader';
 import { LiveLeaderboard } from './LiveLeaderboard';
 import { ActiveRules } from './ActiveRules';
 import { GameLobby } from './GameLobby';
@@ -19,6 +18,8 @@ interface GameRoomProps {
 }
 
 export const GameRoom: React.FC<GameRoomProps> = ({ roomId, playerId, onLeaveRoom }) => {
+  console.log('🎮 GameRoom rendering with:', { roomId, playerId });
+  
   const {
     gameState,
     selectedNumber,
@@ -35,10 +36,12 @@ export const GameRoom: React.FC<GameRoomProps> = ({ roomId, playerId, onLeaveRoo
     readyCount,
     totalReadyPlayers,
     leftPlayers,
+    botAssignmentEnabled,
+    isHost,
     handleStartGame,
     handleNumberSelect,
     handleContinueClick,
-    copyRoomCode,
+    handleToggleBotAssignment,
     formatTime
   } = useGameRoom(roomId, playerId);
 
@@ -48,33 +51,43 @@ export const GameRoom: React.FC<GameRoomProps> = ({ roomId, playerId, onLeaveRoo
   };
 
   if (!gameState) {
+    console.log('⚠️ GameRoom: No gameState, showing loading...');
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="glass-card p-8">
           <LoadingSpinner text="Connecting to game room..." />
+          <div className="mt-4 text-center">
+            <button 
+              onClick={handleLeaveRoom}
+              className="glass-button text-sm px-4 py-2 !bg-red-500/20 hover:!bg-red-500/30"
+            >
+              ← Back to Home
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
-  const isHost = gameState.players[0]?.id === playerId;
-
   return (
     <div className="min-h-screen p-4">
       <div className="max-w-6xl mx-auto space-y-6">
-        <GameHeader 
-          roomId={roomId}
-          currentRound={gameState.currentRound}
-          onLeaveRoom={handleLeaveRoom}
-          onCopyRoomCode={copyRoomCode}
-        />
-
         <LiveLeaderboard 
           players={gameState.players}
           playerId={playerId}
           leftPlayers={leftPlayers}
           roundHistory={gameState.roundHistory}
+          onLeaveRoom={handleLeaveRoom}
         />
+
+        {/* Room Code Display - positioned below LiveLeaderboard */}
+        {gameState.gameState !== 'waiting' && (
+          <div className="text-center">
+            <p className="text-white/40 text-xs">
+              Room Code: <span className="font-mono text-white/60">{roomId}</span>
+            </p>
+          </div>
+        )}
 
         {gameState.gameState === 'playing' && (
           <ActiveRules activeRules={gameState.activeRules} />
@@ -85,7 +98,10 @@ export const GameRoom: React.FC<GameRoomProps> = ({ roomId, playerId, onLeaveRoo
             playersCount={gameState.players.length}
             isHost={isHost}
             roomId={roomId}
+            botAssignmentEnabled={botAssignmentEnabled}
             onStartGame={handleStartGame}
+            onLeaveRoom={handleLeaveRoom}
+            onToggleBotAssignment={handleToggleBotAssignment}
           />
         )}
 
@@ -125,6 +141,7 @@ export const GameRoom: React.FC<GameRoomProps> = ({ roomId, playerId, onLeaveRoo
             winner={gameFinishedData.winner}
             finalScores={gameFinishedData.finalScores}
             onNewGame={handleLeaveRoom}
+            reason={gameFinishedData.reason}
           />
         )}
       </div>

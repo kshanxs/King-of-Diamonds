@@ -65,9 +65,6 @@ winner = this.applyGameRules(playersWithChoices, target, winner);
    - Fixed `applyGameRules()` to return updated winner
    - Updated function call to use returned winner
 
-2. **`backend/server-legacy-backup.js`**:
-   - Added comment noting the bug in the legacy version
-
 ## 🧪 **Testing Scenario**
 
 ```

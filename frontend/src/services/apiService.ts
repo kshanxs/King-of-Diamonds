@@ -1,4 +1,6 @@
-const API_BASE_URL = 'http://localhost:5001/api';
+import { SERVER_URL } from '../config/environment';
+
+const API_BASE_URL = `${SERVER_URL}/api`;
 
 export interface CreateRoomResponse {
   roomId: string;
@@ -11,36 +13,59 @@ export interface JoinRoomResponse {
 
 class ApiService {
   async createRoom(playerName: string): Promise<CreateRoomResponse> {
-    const response = await fetch(`${API_BASE_URL}/create-room`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ playerName }),
-    });
+    try {
+      console.log('Making API request to:', `${API_BASE_URL}/create-room`);
+      const response = await fetch(`${API_BASE_URL}/create-room`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ playerName }),
+      });
 
-    if (!response.ok) {
-      throw new Error('Failed to create room');
+      console.log('API response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('API error response:', errorText);
+        throw new Error(`Failed to create room: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('API response data:', result);
+      return result;
+    } catch (error) {
+      console.error('Network or parsing error:', error);
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Unable to connect to server. Please ensure the backend is running.');
+      }
+      throw error;
     }
-
-    return response.json();
   }
 
   async joinRoom(roomId: string, playerName: string): Promise<JoinRoomResponse> {
-    const response = await fetch(`${API_BASE_URL}/join-room`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ roomId, playerName }),
-    });
+    try {
+      const response = await fetch(`${API_BASE_URL}/join-room`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ roomId, playerName }),
+      });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to join room');
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to join room');
+      }
+
+      return response.json();
+    } catch (error) {
+      console.error('Network or parsing error in joinRoom:', error);
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Unable to connect to server. Please ensure the backend is running.');
+      }
+      throw error;
     }
-
-    return response.json();
   }
 }
 

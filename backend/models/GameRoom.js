@@ -23,6 +23,9 @@ class GameRoom {
     this.playersReady = new Set();
     this.nextRoundDelay = GAME_CONFIG.NEXT_ROUND_DELAY;
     
+    // Bot assignment settings (admin toggleable)
+    this.botAssignmentEnabled = true; // Default: enabled
+    
     // Initialize Bot AI service
     this.botAI = new BotAI();
   }
@@ -48,11 +51,102 @@ class GameRoom {
       hasLeft: false,
       currentChoice: null,
       hasChosenThisRound: false,
-      timeoutCount: 0  // Track consecutive timeouts for elimination rule
+      timeoutCount: 0,  // Track consecutive timeouts for elimination rule
+      originalName: null, // For tracking original human player name
+      assignedBotName: null // Bot name assigned to replace left human player
     };
     
     this.players.set(playerId, player);
     return true;
+  }
+
+  /**
+   * Toggle bot assignment setting (admin only)
+   * @param {boolean} enabled - Whether to enable bot assignment
+   */
+  setBotAssignmentEnabled(enabled) {
+    this.botAssignmentEnabled = enabled;
+    console.log(`🎮 Bot assignment ${enabled ? 'enabled' : 'disabled'} in room ${this.roomId}`);
+  }
+
+  /**
+   * Assign a bot to take over for a left human player
+   * @param {Object} player - The left player object
+   */
+  assignBotToLeftPlayer(player) {
+    // Get available bot names (not already used by other players)
+    const usedBotNames = Array.from(this.players.values())
+      .filter(p => p.isBot || p.assignedBotName)
+      .map(p => p.assignedBotName || p.name);
+    
+    const availableBotNames = BOT_NAMES.filter(name => !usedBotNames.includes(name));
+    
+    if (availableBotNames.length === 0) {
+      // Fallback to a default bot name with random suffix
+      player.assignedBotName = `Bot ${Math.floor(Math.random() * 1000)}`;
+    } else {
+      // Assign a random available bot name
+      const randomIndex = Math.floor(Math.random() * availableBotNames.length);
+      player.assignedBotName = availableBotNames[randomIndex];
+    }
+    
+    // Store original name if not already stored
+    if (!player.originalName) {
+      player.originalName = player.name;
+    }
+    
+    // Store whether player had already made a choice this round
+    const hadAlreadyChosen = player.hasChosenThisRound;
+    
+    // Convert player to bot behavior but keep hasLeft = true for display
+    player.isBot = true;
+    
+    // Only reset choice status if they hadn't chosen yet
+    if (!hadAlreadyChosen) {
+      player.hasChosenThisRound = false;
+    }
+    
+    console.log(`🤖 Assigned bot "${player.assignedBotName}" to take over for left player "${player.originalName}" in room ${this.roomId} (had chosen: ${hadAlreadyChosen})`);
+    
+    // If they had already chosen, log the choice details
+    if (hadAlreadyChosen) {
+      console.log(`🎯 Player ${player.originalName} had already chosen ${player.currentChoice} this round - preserving choice for bot ${player.assignedBotName}`);
+      console.log(`📊 Current choice preserved: ${player.currentChoice}, hasChosenThisRound: ${player.hasChosenThisRound}`);
+    }
+    
+    // Make the bot choice immediately if game is in progress and they haven't chosen yet
+    if (this.gameState === 'playing' && !hadAlreadyChosen) {
+      // Use a shorter delay for assigned bots to make transition smoother
+      const delay = Math.min(1000, this.botAI.calculateResponseDelay()); // Max 1 second delay
+      setTimeout(() => {
+        if (!player.hasChosenThisRound && !player.isEliminated) {
+          const gameContext = this.createGameContext();
+          const choice = this.botAI.calculateBotChoice(player, gameContext);
+          console.log(`🤖 Bot ${player.assignedBotName} making choice: ${choice}`);
+          this.makeChoiceForAssignedBot(player.id, choice);
+        }
+      }, delay);
+    }
+    
+    // Debug: Check if all players have chosen after bot assignment
+    if (this.gameState === 'playing') {
+      setTimeout(() => {
+        const activePlayers = this.getActivePlayers();
+        const chosenCount = activePlayers.filter(p => p.hasChosenThisRound).length;
+        console.log(`🔍 After bot assignment - ${chosenCount}/${activePlayers.length} players have chosen:`);
+        activePlayers.forEach(p => {
+          console.log(`  - ${p.assignedBotName || p.name} (${p.isBot ? 'Bot' : 'Human'}): ${p.hasChosenThisRound ? 'CHOSEN' : 'WAITING'}`);
+        });
+        
+        // Check if all have chosen and round should proceed
+        const allChosen = activePlayers.every(p => p.hasChosenThisRound);
+        if (allChosen) {
+          console.log(`✅ All players have chosen after bot assignment - round should proceed`);
+        } else {
+          console.log(`⏳ Still waiting for ${activePlayers.filter(p => !p.hasChosenThisRound).length} players to choose`);
+        }
+      }, 100);
+    }
   }
 
   /**
@@ -68,9 +162,42 @@ class GameRoom {
         // Game hasn't started yet, remove player completely
         this.players.delete(playerId);
       } else {
-        // Game has started, mark as left to preserve in leaderboard
+        // Game has started, mark as left
         player.hasLeft = true;
         player.hasChosenThisRound = false; // Reset their choice status
+        
+        // Check if this was a solo game (only 1 human player)
+        const humanPlayers = Array.from(this.players.values()).filter(p => !p.isBot);
+        const activeHumanPlayers = humanPlayers.filter(p => !p.hasLeft);
+        
+        if (humanPlayers.length === 1 && activeHumanPlayers.length === 0) {
+          // Solo game - just end the game when the single human leaves
+          console.log(`🔚 Solo game ended in room ${this.roomId} - single player ${playerId} left`);
+          this.gameState = 'finished';
+          this.io.to(this.roomId).emit('gameFinished', {
+            winner: 'Game ended - player left',
+            finalScores: Array.from(this.players.values()),
+            reason: 'solo_player_left'
+          });
+        } else {
+          // Multiplayer game - handle bot assignment if enabled
+          if (this.botAssignmentEnabled) {
+            this.assignBotToLeftPlayer(player);
+            
+            // Check if only bots remain after this player left
+            if (this.onlyBotsRemaining() && this.gameState === 'playing') {
+              console.log(`🤖 Terminating game in room ${this.roomId} - only bots remaining after player ${playerId} left`);
+              this.gameState = 'finished';
+              this.io.to(this.roomId).emit('gameFinished', {
+                winner: 'Game terminated - no human players remaining',
+                finalScores: Array.from(this.players.values()),
+                reason: 'no_humans'
+              });
+            }
+          } else {
+            console.log(`👋 Player ${playerId} left room ${this.roomId} - no bot assigned (disabled by admin)`);
+          }
+        }
       }
       this.playersReady.delete(playerId); // Remove from ready set
     } else {
@@ -90,6 +217,12 @@ class GameRoom {
    * Fill room with bot players
    */
   fillWithBots() {
+    // Only fill with bots if game hasn't started yet
+    if (this.gameState !== 'waiting') {
+      console.log(`⚠️ Cannot add bots to room ${this.roomId} - game already in progress (state: ${this.gameState})`);
+      return;
+    }
+
     // Count only non-left players for bot calculation
     const activePlayerCount = Array.from(this.players.values()).filter(p => !p.hasLeft).length;
     const botsNeeded = Math.max(0, this.maxPlayers - activePlayerCount);
@@ -107,6 +240,7 @@ class GameRoom {
       const botId = uuidv4();
       const botName = availableBotNames[i]; // Take from shuffled array
       this.addPlayer(botId, botName, true);
+      console.log(`🤖 Added bot ${botName} to room ${this.roomId}`);
     }
   }
 
@@ -137,6 +271,12 @@ class GameRoom {
    * @returns {boolean} Success status
    */
   startGame() {
+    // Prevent starting if game is already in progress
+    if (this.gameState !== 'waiting') {
+      console.log(`⚠️ Cannot start game in room ${this.roomId} - already in progress (state: ${this.gameState})`);
+      return false;
+    }
+
     const activePlayers = Array.from(this.players.values()).filter(p => !p.hasLeft);
     if (activePlayers.length < this.minPlayers) return false;
     
@@ -145,6 +285,7 @@ class GameRoom {
     
     this.gameState = 'countdown';
     this.startCountdown();
+    console.log(`🚀 Game started in room ${this.roomId} with ${activePlayers.length} players`);
     return true;
   }
 
@@ -208,7 +349,9 @@ class GameRoom {
         score: p.score,
         isEliminated: p.isEliminated,
         isBot: p.isBot,
-        hasLeft: p.hasLeft || false
+        hasLeft: p.hasLeft || false,
+        originalName: p.originalName,
+        assignedBotName: p.assignedBotName
       }))
     });
 
@@ -225,10 +368,16 @@ class GameRoom {
    * Make choices for all bot players
    */
   makeBotChoices() {
-    const bots = Array.from(this.players.values()).filter(player => player.isBot && !player.isEliminated && !player.hasLeft);
+    // Regular bots (not left players)
+    const regularBots = Array.from(this.players.values()).filter(player => 
+      player.isBot && !player.isEliminated && !player.hasLeft);
     
-    bots.forEach((player, index) => {
-      // Stagger bot choices with random delays
+    // Assigned bots (left players with assigned bots)
+    const assignedBots = Array.from(this.players.values()).filter(player => 
+      player.isBot && !player.isEliminated && player.hasLeft && player.assignedBotName);
+    
+    // Handle regular bots
+    regularBots.forEach((player) => {
       const delay = this.botAI.calculateResponseDelay();
       
       setTimeout(() => {
@@ -239,6 +388,19 @@ class GameRoom {
         }
       }, delay);
     });
+    
+    // Handle assigned bots
+    assignedBots.forEach((player) => {
+      const delay = this.botAI.calculateResponseDelay();
+      
+      setTimeout(() => {
+        if (this.gameState === 'playing' && !player.hasChosenThisRound && !player.isEliminated) {
+          const gameContext = this.createGameContext();
+          const choice = this.botAI.calculateBotChoice(player, gameContext);
+          this.makeChoiceForAssignedBot(player.id, choice);
+        }
+      }, delay);
+    });
   }
 
   /**
@@ -246,7 +408,10 @@ class GameRoom {
    * @returns {Object} Game context object
    */
   createGameContext() {
-    const activePlayers = Array.from(this.players.values()).filter(p => !p.isEliminated && !p.hasLeft);
+    // Include both active players and assigned bots
+    const activePlayers = Array.from(this.players.values()).filter(p => 
+      !p.isEliminated && (!p.hasLeft || p.assignedBotName)
+    );
     return {
       activeRules: this.getActiveRules(),
       activePlayers: activePlayers,
@@ -254,6 +419,55 @@ class GameRoom {
       eliminatedCount: this.eliminatedCount,
       currentRound: this.currentRound
     };
+  }
+
+  /**
+   * Record a player's choice (special version for assigned bots)
+   * @param {string} playerId - Player ID
+   * @param {number} choice - Player's choice (0-100)
+   * @returns {boolean} Success status
+   */
+  makeChoiceForAssignedBot(playerId, choice) {
+    const player = this.players.get(playerId);
+    // Allow assigned bots (hasLeft=true but isBot=true with assignedBotName) to make choices
+    if (!player || player.isEliminated || player.hasChosenThisRound) return false;
+    if (!player.isBot || !player.assignedBotName) return false; // Only for assigned bots
+    
+    player.currentChoice = choice;
+    player.hasChosenThisRound = true;
+    
+    // Calculate active players including both humans and assigned bots
+    const activePlayers = Array.from(this.players.values()).filter(p => !p.isEliminated && (!p.hasLeft || p.assignedBotName));
+    const chosenCount = activePlayers.filter(p => p.hasChosenThisRound).length;
+    
+    // Determine display name for the player who just made a choice
+    const displayName = `🤖 ${player.assignedBotName} (for ${player.originalName})`;
+    
+    this.io.to(this.roomId).emit('choiceUpdate', {
+      chosenCount: chosenCount,
+      totalActivePlayers: activePlayers.length,
+      lastPlayerName: displayName,
+      timestamp: Date.now()
+    });
+
+    console.log(`📊 Choice update sent: ${chosenCount}/${activePlayers.length} players have chosen in room ${this.roomId} (Assigned Bot: ${player.assignedBotName} for ${player.originalName})`);
+    
+    // Check if all players (including assigned bots) have chosen
+    const allActivePlayers = Array.from(this.players.values()).filter(p => !p.isEliminated && (!p.hasLeft || p.assignedBotName));
+    const allChosen = allActivePlayers.every(p => p.hasChosenThisRound);
+    
+    console.log(`🔍 After assigned bot choice - allChosen: ${allChosen}, active players: ${allActivePlayers.length}`);
+    allActivePlayers.forEach(p => {
+      console.log(`  - ${p.assignedBotName || p.name}: ${p.hasChosenThisRound ? 'CHOSEN' : 'WAITING'}`);
+    });
+    
+    if (allChosen) {
+      console.log(`✅ All players chosen - clearing round timer and processing round`);
+      clearInterval(this.roundTimer);
+      this.processRound();
+    }
+    
+    return true;
   }
 
   /**
@@ -269,20 +483,34 @@ class GameRoom {
     player.currentChoice = choice;
     player.hasChosenThisRound = true;
     
-    // Emit real-time choice update for all players (human and bot)
-    const activePlayers = Array.from(this.players.values()).filter(p => !p.isEliminated && !p.hasLeft);
+    // Use consistent active player filtering
+    const activePlayers = this.getActivePlayers();
     const chosenCount = activePlayers.filter(p => p.hasChosenThisRound).length;
+    
+    // Determine display name for the player who just made a choice
+    let displayName;
+    if (player.isBot) {
+      if (player.assignedBotName) {
+        // Bot assigned to a left human player
+        displayName = `🤖 ${player.assignedBotName} (for ${player.originalName})`;
+      } else {
+        // Regular bot
+        displayName = `🤖 ${player.name}`;
+      }
+    } else {
+      displayName = '👤 Player';
+    }
     
     this.io.to(this.roomId).emit('choiceUpdate', {
       chosenCount,
       totalActivePlayers: activePlayers.length,
-      lastPlayerName: player.isBot ? '🤖 Bot' : '👤 Player', // Anonymized
+      lastPlayerName: displayName, // More informative display
       timestamp: Date.now()
     });
 
-    console.log(`📊 Choice update sent: ${chosenCount}/${activePlayers.length} players have chosen in room ${this.roomId} (${player.isBot ? 'Bot' : 'Human'}: ${player.name})`);
+    console.log(`📊 Choice update sent: ${chosenCount}/${activePlayers.length} players have chosen in room ${this.roomId} (${player.isBot ? 'Bot' : 'Human'}: ${player.assignedBotName || player.name})`);
     
-    // Check if all non-eliminated AND non-left players have chosen
+    // Check if all active players (including assigned bots) have chosen
     const allChosen = activePlayers.every(p => p.hasChosenThisRound);
     
     if (allChosen) {
@@ -297,12 +525,13 @@ class GameRoom {
    * Process the current round results
    */
   processRound() {
-    const activePlayers = Array.from(this.players.values()).filter(p => !p.isEliminated && !p.hasLeft);
+    // Use consistent active player filtering
+    const activePlayers = this.getActivePlayers();
     
     // Track point losses for each player this round
     const pointLosses = new Map();
     activePlayers.forEach(player => {
-      pointLosses.set(player.id, { name: player.name, losses: [] });
+      pointLosses.set(player.id, { name: player.originalName || player.name, losses: [] });
     });
     
     // Apply timeout penalty for players who didn't choose
@@ -484,7 +713,9 @@ class GameRoom {
         isEliminated: p.isEliminated,
         isBot: p.isBot,
         hasLeft: p.hasLeft || false,
-        currentChoice: p.currentChoice
+        currentChoice: p.currentChoice,
+        originalName: p.originalName,
+        assignedBotName: p.assignedBotName
       }))
     });
   }
@@ -530,21 +761,71 @@ class GameRoom {
         score: p.score,
         isEliminated: p.isEliminated,
         isBot: p.isBot,
-        currentChoice: p.currentChoice
+        currentChoice: p.currentChoice,
+        originalName: p.originalName,
+        assignedBotName: p.assignedBotName
       }))
     });
+  }
+
+  /**
+   * Get active players based on bot assignment setting
+   * @returns {Array} Array of active players
+   */
+  getActivePlayers() {
+    if (this.botAssignmentEnabled) {
+      // Include assigned bots as active players
+      return Array.from(this.players.values()).filter(p => !p.isEliminated && (!p.hasLeft || p.assignedBotName));
+    } else {
+      // Only include non-left players
+      return Array.from(this.players.values()).filter(p => !p.isEliminated && !p.hasLeft);
+    }
+  }
+
+  /**
+   * Check if only bots remain in the game
+   * @returns {boolean} True if only bots are left playing
+   */
+  onlyBotsRemaining() {
+    const activePlayers = this.getActivePlayers();
+    const humanPlayers = activePlayers.filter(p => !p.hasLeft && !p.isBot); // Non-left human players
+    
+    if (!this.botAssignmentEnabled) {
+      // If bot assignment is disabled, check if any human players remain
+      return humanPlayers.length === 0 && activePlayers.length > 0;
+    }
+    
+    const assignedBotPlayers = activePlayers.filter(p => p.hasLeft && p.assignedBotName); // Count assigned bots as human representation
+    
+    return (humanPlayers.length + assignedBotPlayers.length) === 0 && activePlayers.length > 0;
   }
 
   /**
    * Check if game should end
    */
   checkGameEnd() {
-    const remainingPlayers = Array.from(this.players.values()).filter(p => !p.isEliminated && !p.hasLeft);
+    const remainingPlayers = Array.from(this.players.values()).filter(p => !p.isEliminated && (!p.hasLeft || p.assignedBotName));
+    
+    // Check if only bots remain - terminate game immediately
+    if (this.onlyBotsRemaining()) {
+      this.gameState = 'finished';
+      console.log(`🤖 Game terminated in room ${this.roomId} - only bots remaining`);
+      
+      this.io.to(this.roomId).emit('gameFinished', {
+        winner: 'Game terminated - no human players remaining',
+        finalScores: Array.from(this.players.values()),
+        reason: 'no_humans'
+      });
+      return;
+    }
     
     if (remainingPlayers.length <= 1) {
       this.gameState = 'finished';
+      const winner = remainingPlayers[0];
+      const winnerName = winner ? (winner.originalName || winner.name) : 'No winner';
+      
       this.io.to(this.roomId).emit('gameFinished', {
-        winner: remainingPlayers[0]?.name || 'No winner',
+        winner: winnerName,
         finalScores: Array.from(this.players.values())
       });
     } else {
@@ -581,14 +862,14 @@ class GameRoom {
   playerReady(playerId) {
     this.playersReady.add(playerId);
     
-    // Auto-mark all bots as ready when a human player is ready
-    const botPlayers = Array.from(this.players.values()).filter(p => !p.isEliminated && !p.hasLeft && p.isBot);
+    // Auto-mark all bots (including assigned bots) as ready when a human player is ready
+    const botPlayers = Array.from(this.players.values()).filter(p => !p.isEliminated && p.isBot);
     botPlayers.forEach(bot => {
       this.playersReady.add(bot.id);
     });
     
-    // Check if all non-eliminated AND non-left players are ready
-    const activePlayers = Array.from(this.players.values()).filter(p => !p.isEliminated && !p.hasLeft);
+    // Check if all non-eliminated players (including assigned bots) are ready
+    const activePlayers = Array.from(this.players.values()).filter(p => !p.isEliminated && (!p.hasLeft || p.assignedBotName));
     const allReady = activePlayers.every(p => this.playersReady.has(p.id));
     
     // Emit ready status update to all players

@@ -50,13 +50,13 @@ export const NumberGrid: React.FC<NumberGridProps> = memo(({ onNumberSelect, isE
   };
 
   return (
-    <div className="grid grid-cols-10 gap-2 max-h-96 overflow-y-auto mb-4">
+    <div className="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-1 sm:gap-2 max-h-96 overflow-y-auto mb-4">
       {Array.from({ length: 101 }, (_, i) => (
         <button
           key={i}
           onClick={() => handleNumberSelect(i)}
           disabled={isAnimatingOut}
-          className={`number-button aspect-square flex items-center justify-center transition-all duration-300 ease-out ${
+          className={`number-button aspect-square flex items-center justify-center transition-all duration-300 ease-out text-xs sm:text-sm ${
             visibleButtons.has(i) 
               ? 'opacity-100 transform translate-y-0 scale-100' 
               : 'opacity-0 transform translate-y-4 scale-90'

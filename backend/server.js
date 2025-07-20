@@ -56,14 +56,39 @@ app.use((req, res, next) => {
 
 // Health check endpoint (separate from API routes for load balancers)
 app.get('/health', (req, res) => {
+  // Calculate total players across all rooms
+  let totalPlayers = 0;
+  rooms.forEach(room => {
+    totalPlayers += room.players?.length || 0;
+  });
+
   res.status(200).json({
-    status: 'healthy',
+    status: 'ok',
+    server: 'King of Diamonds Game Server',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     version: process.env.npm_package_version || '1.0.0',
     environment: SERVER_CONFIG.NODE_ENV,
-    activeRooms: rooms.size,
-    activePlayers: playerSockets.size
+    rooms: rooms.size,
+    players: totalPlayers,
+    activeSockets: playerSockets.size,
+    serverInfo: {
+      nodeVersion: process.version,
+      platform: process.platform,
+      memoryUsage: process.memoryUsage()
+    }
+  });
+});
+
+// Connection test endpoint for debugging
+app.get('/test-connection', (req, res) => {
+  res.status(200).json({
+    message: 'Backend server is reachable',
+    timestamp: new Date().toISOString(),
+    clientIP: req.ip,
+    headers: req.headers,
+    corsOrigin: SERVER_CONFIG.CORS_ORIGIN,
+    port: SERVER_CONFIG.PORT
   });
 });
 
@@ -161,13 +186,40 @@ process.on('unhandledRejection', (reason, promise) => {
 });
 
 // Start server
-server.listen(SERVER_CONFIG.PORT, () => {
+server.listen(SERVER_CONFIG.PORT, '0.0.0.0', () => {
+  const networkInterfaces = require('os').networkInterfaces();
+  const addresses = Object.values(networkInterfaces)
+    .flat()
+    .filter(addr => addr.family === 'IPv4' && !addr.internal)
+    .map(addr => addr.address);
+
   console.log('🎮 ========================================');
   console.log('💎 King of Diamonds Server Started! 💎');
   console.log('🎮 ========================================');
   console.log(`🌐 Server running on port ${SERVER_CONFIG.PORT}`);
   console.log(`🔧 Environment: ${SERVER_CONFIG.NODE_ENV}`);
   console.log(`🕐 Started at: ${new Date().toISOString()}`);
+  console.log('');
+  console.log('🔗 Server accessible at:');
+  console.log(`   Local:  http://localhost:${SERVER_CONFIG.PORT}`);
+  console.log(`   Local:  http://127.0.0.1:${SERVER_CONFIG.PORT}`);
+  
+  if (addresses.length > 0) {
+    console.log('   LAN:');
+    addresses.forEach(addr => {
+      console.log(`           http://${addr}:${SERVER_CONFIG.PORT}`);
+    });
+    console.log('');
+    console.log('📱 Share LAN addresses with other players on your network!');
+    console.log('🎯 Frontend should be accessible at:');
+    addresses.forEach(addr => {
+      console.log(`           http://${addr}:5173`);
+    });
+  } else {
+    console.log('⚠️  No network interfaces found for LAN play');
+  }
+  
+  console.log('');
   console.log('🎯 Ready for players!');
   console.log('🎮 ========================================');
 });

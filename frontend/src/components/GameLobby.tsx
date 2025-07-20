@@ -1,6 +1,7 @@
 import React, { memo, useState, useEffect } from 'react';
 import QRCode from 'qrcode';
 import { getLocalNetworkInfo } from '../config/environment';
+import { triggerHaptic } from '../utils/haptics';
 
 interface GameLobbyProps {
   playersCount: number;
@@ -75,6 +76,8 @@ export const GameLobby: React.FC<GameLobbyProps> = memo(({
 
   const handleCopyRoomInfo = async () => {
     try {
+      // Haptic feedback (vibration) for mobile
+      triggerHaptic();
       const shareText = !networkInfo.isLocal 
         ? `Join my King of Diamonds game!\nRoom Code: ${roomId}\nLAN URL: ${networkInfo.frontendURL}`
         : `Join my King of Diamonds game!\nRoom Code: ${roomId}`;
@@ -85,6 +88,9 @@ export const GameLobby: React.FC<GameLobbyProps> = memo(({
     } catch (err) {
       console.error('Failed to copy room info:', err);
       // Fallback for older browsers
+      if (window.navigator && window.navigator.vibrate) {
+        window.navigator.vibrate(30);
+      }
       const textArea = document.createElement('textarea');
       const shareText = !networkInfo.isLocal 
         ? `Join my King of Diamonds game!\nRoom Code: ${roomId}\nLAN URL: ${networkInfo.frontendURL}`
@@ -100,172 +106,183 @@ export const GameLobby: React.FC<GameLobbyProps> = memo(({
   };
 
   return (
-    <div className="glass-card p-8 text-center">
-      <h2 className="text-2xl font-bold text-white mb-4">Game Lobby</h2>
-      <p className="text-white/70 mb-6">
-        {playersCount} / 5 players joined
-      </p>
-
-      {/* Room Information */}
-      <div className="mb-6 p-4 bg-white/5 rounded-xl">
-        <div className="flex items-center justify-center space-x-2 mb-2">
-          <span className="text-white/70">Room Code:</span>
-          <span className="font-mono font-bold text-diamond-300 text-lg">{roomId}</span>
-          <button
-            onClick={handleCopyRoomInfo}
-            className={`ml-2 p-1 rounded-md transition-all duration-200 ${
-              copySuccess 
-                ? 'bg-green-500/30 text-green-200' 
-                : 'bg-white/10 hover:bg-white/20 text-white/70 hover:text-white'
-            }`}
-            title="Copy room information"
-          >
-            {copySuccess ? '✅' : '📋'}
-          </button>
-        </div>
-
-        {/* Unified Bot Assignment Control - Only for multiplayer */}
-        {playersCount > 1 && (
-          <div className="flex flex-col items-center mt-2 mb-3">
-            {/* Status Indicator with Toggle (for hosts) or just display (for non-hosts) */}
-            <div className={`flex items-center justify-between px-3 py-2 bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 w-full max-w-sm ${
-              isHost ? 'sm:min-w-[280px]' : 'sm:min-w-[200px]'
-            }`}>
-              {/* Left side - Status indicator */}
-              <div className="flex items-center space-x-2">
-                <div className={`w-2.5 h-2.5 rounded-full ${
-                  botAssignmentEnabled 
-                    ? 'bg-green-400 shadow-lg shadow-green-400/50 animate-pulse' 
-                    : 'bg-orange-400 shadow-lg shadow-orange-400/50'
-                }`}></div>
-                <span className="text-white/80 text-sm font-medium">
-                  {botAssignmentEnabled ? "Bot Replace ON" : "Bot Replace OFF"}
-                </span>
-              </div>
-
-              {/* Right side - Toggle control (only for host) */}
-              {isHost && (
-                <div className="flex items-center space-x-2">
-                  <span className="text-white/60 text-xs hidden sm:inline">⚙️</span>
-                  <button
-                    onClick={() => {
-                      const newValue = !botAssignmentEnabled;
-                      console.log(`🎮 GameLobby: Toggle clicked.`);
-                      console.log(`🎮   Current botAssignmentEnabled: ${botAssignmentEnabled}`);
-                      console.log(`🎮   New value to send: ${newValue}`);
-                      console.log(`🎮   Calling onToggleBotAssignment with: ${newValue}`);
-                      onToggleBotAssignment(newValue);
-                    }}
-                    className={`relative inline-flex h-4 w-7 items-center rounded-full transition-all duration-300 backdrop-blur-sm border ${
-                      botAssignmentEnabled 
-                        ? 'bg-gradient-to-r from-diamond-400/80 to-diamond-500/80 border-diamond-300/50 shadow-lg shadow-diamond-500/25' 
-                        : 'bg-white/20 border-white/30 hover:bg-white/30'
-                    }`}
-                    title={`${botAssignmentEnabled ? 'Disable' : 'Enable'} bot replacement`}
-                  >
-                    <span
-                      className={`inline-block h-2.5 w-2.5 transform rounded-full bg-white transition-all duration-300 shadow-sm ${
-                        botAssignmentEnabled ? 'translate-x-3.5' : 'translate-x-0.5'
-                      }`}
-                    />
-                  </button>
-                </div>
-              )}
-            </div>
-            
-            {/* Description - more concise for mobile */}
-            <div className="text-white/50 text-xs mt-2 text-center max-w-xs px-2">
-              {botAssignmentEnabled 
-                ? "Bots replace players who leave mid-game" 
-                : "Players who leave will not be replaced"}
-            </div>
+    <>
+      <div className="glass-card p-4 sm:p-8">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between mb-6 sm:mb-8 gap-4 sm:gap-8">
+          {/* Left: Lobby Info (stacked on mobile) */}
+          <div className="flex flex-col items-start justify-center w-full sm:w-auto">
+            <h2 className="text-xl sm:text-2xl font-extrabold font-mono text-white flex items-center gap-2 mb-2 sm:mb-4">
+              🎮 Game Lobby
+            </h2>
+            <span className="text-white/70 text-base">{playersCount} / 5 players joined</span>
           </div>
-        )}
-
-        {/* LAN Info and QR Code */}
-        {!networkInfo.isLocal && (
-          <div className="space-y-2 mt-4">
-            <div className="flex justify-center">
+          {/* Right: Room Code and QR Invite (stacked on mobile) */}
+          <div className="flex flex-col w-full sm:w-auto mt-2 sm:mt-0">
+            <div className="flex flex-row items-center w-full sm:max-w-[180px]">
+              <span className="text-white/70 text-sm mr-2">Room Code:</span>
               <button
-                onClick={() => setShowQR(!showQR)}
-                className="text-xs px-3 py-1 bg-white/10 hover:bg-white/20 rounded-lg text-white"
+                onClick={e => {
+                  triggerHaptic();
+                  handleCopyRoomInfo();
+                }}
+                className={`text-diamond-300 text-base font-mono bg-black/30 px-3 py-1 rounded-xl border border-diamond-400/30 shadow transition-all duration-200 focus:outline-none active:scale-95 w-full ${copySuccess ? 'bg-green-500/30 text-green-200' : 'hover:bg-white/10 hover:text-diamond-400'}`}
+                title={copySuccess ? 'Copied!' : 'Click to copy room code'}
+                style={{ borderRadius: '0.75rem', backdropFilter: 'blur(8px)', boxShadow: '0 4px 24px 0 rgba(0,0,0,0.08)' }}
               >
-                {showQR ? '❌ Hide QR' : '📱 Show QR Code'}
+                {roomId} {copySuccess ? '✅' : ''}
               </button>
             </div>
-            <div className="text-xs text-white/50">
-              LAN URL: {networkInfo.frontendURL}
-            </div>
-            
-            {showQR && (
-              <div className="mt-3 flex justify-center">
-                {qrLoading ? (
-                  <div className="w-[120px] h-[120px] bg-white/10 rounded-lg flex items-center justify-center">
-                    <div className="animate-spin w-6 h-6 border-2 border-white border-t-transparent rounded-full"></div>
-                  </div>
-                ) : qrDataUrl ? (
-                  <img
-                    src={qrDataUrl}
-                    alt="QR Code for LAN connection"
-                    className="rounded-lg"
-                  />
-                ) : (
-                  <div className="w-[120px] h-[120px] bg-white/10 rounded-lg flex items-center justify-center text-white/50 text-xs">
-                    QR generation failed
-                  </div>
-                )}
-              </div>
+            {/* QR Invite button below room code, full width on mobile */}
+            {!networkInfo.isLocal && (
+              <button
+                onClick={e => {
+                  triggerHaptic();
+                  setShowQR(true);
+                }}
+                className="glass-button text-base font-semibold mt-2 w-full sm:max-w-[180px]"
+                style={{ borderRadius: '0.75rem', backdropFilter: 'blur(8px)', boxShadow: '0 4px 24px 0 rgba(0,0,0,0.08)' }}
+              >
+                📱 QR Invite
+              </button>
             )}
           </div>
-        )}
-      </div>
+        </div>
 
-      {isHost && (
-        <div className="space-y-4">
-          {playersCount === 1 ? (
-            <>
-              <div className="flex justify-center gap-4">
-                <button
-                  onClick={onStartGame}
-                  className="glass-button text-xl px-8 py-4 !bg-diamond-500/20 hover:!bg-diamond-500/30"
-                >
-                  Start Solo Game
-                </button>
-                <button
-                  onClick={onLeaveRoom}
-                  className="glass-button text-lg px-6 py-4 !bg-red-500/20 hover:!bg-red-500/30"
-                >
-                  Leave Room
-                </button>
+        {/* Bot Assignment & Start Game - no extra glass effect */}
+        <div className="mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-8 mb-4">
+            {/* Bot Assignment Control for non-admins only */}
+            {playersCount > 1 && !isHost && (
+              <div className="w-full sm:w-auto">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:gap-6 max-w-2xl mx-auto">
+                  <div className="flex flex-row items-center gap-4 flex-1">
+                    <div className="flex items-center space-x-2">
+                      <button
+                        className="glass-button flex items-center justify-center gap-2 text-white/80 text-sm font-medium px-4 py-2 border border-diamond-400/20 shadow w-full sm:w-[180px]"
+                        style={{
+                          borderRadius: '0.75rem',
+                          backdropFilter: 'blur(8px)',
+                          boxShadow: '0 4px 24px 0 rgba(0,0,0,0.08)',
+                          pointerEvents: 'none',
+                          cursor: 'default',
+                          opacity: 0.7
+                        }}
+                        title={botAssignmentEnabled ? 'Bot Replace ON' : 'Bot Replace OFF'}
+                        tabIndex={-1}
+                      >
+                        <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${
+                          botAssignmentEnabled
+                            ? 'bg-green-400 shadow-lg shadow-green-400/50 animate-pulse'
+                            : 'bg-orange-400 shadow-lg shadow-orange-400/50'
+                        }`} />
+                        <span style={{ display: 'inline-block', width: '100px', textAlign: 'center', whiteSpace: 'nowrap' }}>
+                          {botAssignmentEnabled ? 'Bot Replace ON' : 'Bot Replace OFF'}
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+                  {/* No description shown */}
+                </div>
               </div>
-              <p className="text-white/50 text-sm">
-                Play against 4 AI opponents for strategic solo gameplay
-              </p>
-            </>
-          ) : (
-            <>
-              <div className="flex justify-center gap-4">
+            )}
+            {/* LAN Info removed from main lobby UI */}
+          </div>
+
+          {/* Start Game section - visually grouped and centered */}
+          {isHost && (
+            <div className="space-y-6 mt-6 flex flex-col items-center justify-center">
+              {/* Bot Replace button above Start Game for admins */}
+              {playersCount > 1 && (
                 <button
-                  onClick={onStartGame}
-                  className="glass-button text-xl px-8 py-4"
+                  onClick={() => {
+                    triggerHaptic();
+                    const newValue = !botAssignmentEnabled;
+                    onToggleBotAssignment(newValue);
+                  }}
+                  className="glass-button flex items-center justify-center gap-2 text-white/80 text-sm font-medium px-4 py-2 border border-diamond-400/20 shadow w-full sm:w-[180px] transition-all duration-200 focus:outline-none active:scale-95"
+                  style={{ borderRadius: '0.75rem', backdropFilter: 'blur(8px)', boxShadow: '0 4px 24px 0 rgba(0,0,0,0.08)' }}
+                  title={botAssignmentEnabled ? 'Turn Bot Replace OFF' : 'Turn Bot Replace ON'}
                 >
-                  Start Multiplayer Game
+                  <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${
+                    botAssignmentEnabled
+                      ? 'bg-green-400 shadow-lg shadow-green-400/50 animate-pulse'
+                      : 'bg-orange-400 shadow-lg shadow-orange-400/50'
+                  }`} />
+                  <span style={{ display: 'inline-block', width: '100px', textAlign: 'center', whiteSpace: 'nowrap' }}>
+                    {botAssignmentEnabled ? 'Bot Replace ON' : 'Bot Replace OFF'}
+                  </span>
                 </button>
-                <button
-                  onClick={onLeaveRoom}
-                  className="glass-button text-lg px-6 py-4 !bg-red-500/20 hover:!bg-red-500/30"
-                >
-                  Leave Room
-                </button>
-              </div>
-              <p className="text-white/50 text-sm">
-                Playing with {playersCount} human players
-                {playersCount < 5 && ` + ${5 - playersCount} AI opponents`}
-              </p>
-            </>
+              )}
+              {playersCount === 1 ? (
+                <>
+                  <button
+                    onClick={e => {
+                      triggerHaptic();
+                      onStartGame();
+                    }}
+                    className="glass-button text-xl px-8 py-4 !bg-diamond-500/80 hover:!bg-diamond-500/90 font-bold shadow-lg w-full sm:w-auto"
+                  >
+                    Start Solo Game
+                  </button>
+                  <p className="text-white/60 text-base mt-4 text-center">
+                    Play against <span className="font-bold text-diamond-300">4 AI opponents</span> for strategic solo gameplay
+                  </p>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={e => {
+                      triggerHaptic();
+                      onStartGame();
+                    }}
+                    className="glass-button text-xl px-8 py-4 !bg-diamond-500/80 hover:!bg-diamond-500/90 font-bold shadow-lg w-full sm:w-auto"
+                  >
+                    Start Multiplayer Game
+                  </button>
+                  <p className="text-white/60 text-base mt-4 text-center">
+                    Playing with <span className="font-bold text-diamond-300">{playersCount} human players</span>
+                    {playersCount < 5 && <span> + <span className="font-bold text-diamond-300">{5 - playersCount} AI opponents</span></span>}
+                  </p>
+                </>
+              )}
+            </div>
           )}
         </div>
+      </div>
+
+      {/* QR Code Modal Popup */}
+      {showQR && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center z-50 p-4" onClick={() => setShowQR(false)}>
+          <div className="glass-card max-w-md w-full p-6 text-center animate-scale-in" onClick={e => e.stopPropagation()}>
+            <h3 className="text-xl font-bold text-white mb-4">📱 Lobby Invite QR Code</h3>
+            {qrLoading ? (
+              <div className="w-64 h-64 bg-white/10 rounded-xl flex items-center justify-center">
+                <div className="animate-spin w-8 h-8 border-2 border-white border-t-transparent rounded-full"></div>
+              </div>
+            ) : qrDataUrl ? (
+              <div className="bg-white p-4 rounded-xl mb-4 inline-block">
+                <img src={qrDataUrl} alt="QR Code for Lobby Invite" className="w-64 h-64 mx-auto" />
+              </div>
+            ) : (
+              <div className="w-64 h-64 bg-white/10 rounded-xl flex items-center justify-center text-white/50 text-xs">
+                QR generation failed
+              </div>
+            )}
+            {/* LAN URL below QR code */}
+            {!networkInfo.isLocal && (
+              <div className="text-xs text-white/70 mb-4">
+                LAN URL: <span className="font-mono text-diamond-300">{networkInfo.frontendURL}</span>
+              </div>
+            )}
+            <p className="text-white/70 text-sm mb-4">
+              Scan this QR code to join this King of Diamonds lobby
+            </p>
+            <button onClick={e => { triggerHaptic(); setShowQR(false); }} className="glass-button w-full">
+              Return to Lobby
+            </button>
+          </div>
+        </div>
       )}
-    </div>
+    </>
   );
 });

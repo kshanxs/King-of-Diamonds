@@ -1,6 +1,11 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { socketService } from '../services/socketService';
 import type { GameState, Player, RoundResult } from '../types/game';
+
+// Extend the Window interface to include our custom test function
+interface Window {
+  testStateUpdate?: () => void;
+}
 
 export const useGameRoom = (roomId: string, playerId: string) => {
   const [gameState, setGameState] = useState<GameState | null>(null);
@@ -62,7 +67,7 @@ export const useGameRoom = (roomId: string, playerId: string) => {
     console.log('🎮 useGameRoom: Setting up botAssignmentChanged listener');
     socketService.on('botAssignmentChanged', (data: { enabled: boolean }) => {
       console.log('🎮 Bot assignment changed event received:', data);
-      console.log('🎮 Current botAssignmentEnabled state before update:', botAssignmentEnabled);
+      console.log('🎮 Current botAssignmentEnabled state before update:', botAssignmentEnabledRef.current);
       setBotAssignmentEnabled(data.enabled);
       console.log('🎮 setBotAssignmentEnabled called with:', data.enabled);
     });
@@ -248,18 +253,18 @@ export const useGameRoom = (roomId: string, playerId: string) => {
   };
 
   // Temporary test function to manually update state
-  const testStateUpdate = () => {
+  const testStateUpdate = useCallback(() => {
     console.log(`🧪 TEST: Manual state update from ${botAssignmentEnabled} to ${!botAssignmentEnabled}`);
     setBotAssignmentEnabled(!botAssignmentEnabled);
-  };
+  }, [botAssignmentEnabled]);
 
   // Add test function to window for debugging
   useEffect(() => {
-    (window as any).testStateUpdate = testStateUpdate;
+    (window as Window).testStateUpdate = testStateUpdate;
     return () => {
-      delete (window as any).testStateUpdate;
+      delete (window as Window).testStateUpdate;
     };
-  }, [botAssignmentEnabled]);
+  }, [testStateUpdate]);
 
   return {
     // State

@@ -150,7 +150,7 @@ export const RoundResultModal: React.FC<RoundResultModalProps> = ({
                             {choice.pointLosses.map((loss, lossIndex) => (
                               <div key={lossIndex} className="flex justify-between items-center text-xs">
                                 <span className="text-red-300">{loss.reason}</span>
-                                <span className="text-red-400 font-semibold">-{loss.points} pts</span>
+                                <span className="text-red-400 font-semibold">{loss.points > 0 ? `-${loss.points}` : loss.points} pts</span>
                               </div>
                             ))}
                           </div>

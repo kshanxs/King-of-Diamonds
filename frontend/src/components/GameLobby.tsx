@@ -9,7 +9,6 @@ interface GameLobbyProps {
   roomId: string;
   botAssignmentEnabled: boolean;
   onStartGame: () => void;
-  onLeaveRoom: () => void;
   onToggleBotAssignment: (enabled: boolean) => void;
 }
 
@@ -19,48 +18,39 @@ export const GameLobby: React.FC<GameLobbyProps> = memo(({
   roomId,
   botAssignmentEnabled,
   onStartGame,
-  onLeaveRoom,
   onToggleBotAssignment
 }) => {
-  console.log(`🎮 GameLobby rendering with botAssignmentEnabled: ${botAssignmentEnabled}`);
-  
   const [showQR, setShowQR] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
   const [qrLoading, setQrLoading] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
   const networkInfo = getLocalNetworkInfo();
 
-    // Generate QR code locally for instant display
   useEffect(() => {
     const generateQRCode = async () => {
       if (networkInfo.isLocal) return;
       
       setQrLoading(true);
       try {
-        // Include room code in URL for easier scanning
         const url = `${networkInfo.frontendURL}?room=${roomId}`;
-        console.log('Generating QR for URL:', url);
         const dataUrl = await QRCode.toDataURL(url, {
           width: 120,
           margin: 2,
           color: {
-            dark: '#000000',  // Black QR code
-            light: '#ffffff'  // White background
+            dark: '#000000',
+            light: '#ffffff'
           }
         });
-        if (dataUrl && dataUrl.length > 50) { // Basic validation
+        if (dataUrl && dataUrl.length > 50) {
           setQrDataUrl(dataUrl);
-          console.log('QR code generated successfully');
         } else {
           throw new Error('Invalid QR code generated');
         }
       } catch (err) {
         console.error('QR code generation error:', err);
-        // Fallback to external API if local generation fails
         try {
           const fallbackUrl = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(`${networkInfo.frontendURL}?room=${roomId}`)}`;
           setQrDataUrl(fallbackUrl);
-          console.log('Using fallback QR generation');
         } catch (fallbackErr) {
           console.error('Fallback QR generation also failed:', fallbackErr);
         }
@@ -76,7 +66,6 @@ export const GameLobby: React.FC<GameLobbyProps> = memo(({
 
   const handleCopyRoomInfo = async () => {
     try {
-      // Haptic feedback (vibration) for mobile
       triggerHaptic();
       const shareText = !networkInfo.isLocal 
         ? `Join my King of Diamonds game!\nRoom Code: ${roomId}\nLAN URL: ${networkInfo.frontendURL}`
@@ -87,15 +76,13 @@ export const GameLobby: React.FC<GameLobbyProps> = memo(({
       setTimeout(() => setCopySuccess(false), 2000);
     } catch (err) {
       console.error('Failed to copy room info:', err);
-      // Fallback for older browsers
       if (window.navigator && window.navigator.vibrate) {
         window.navigator.vibrate(30);
       }
       const textArea = document.createElement('textarea');
-      const shareText = !networkInfo.isLocal 
+      textArea.value = !networkInfo.isLocal 
         ? `Join my King of Diamonds game!\nRoom Code: ${roomId}\nLAN URL: ${networkInfo.frontendURL}`
         : `Join my King of Diamonds game!\nRoom Code: ${roomId}`;
-      textArea.value = shareText;
       document.body.appendChild(textArea);
       textArea.select();
       document.execCommand('copy');
@@ -107,182 +94,159 @@ export const GameLobby: React.FC<GameLobbyProps> = memo(({
 
   return (
     <>
-      <div className="glass-card p-4 sm:p-8">
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between mb-6 sm:mb-8 gap-4 sm:gap-8">
-          {/* Left: Lobby Info (stacked on mobile) */}
-          <div className="flex flex-col items-start justify-center w-full sm:w-auto">
-            <h2 className="text-xl sm:text-2xl font-extrabold font-mono text-white flex items-center gap-2 mb-2 sm:mb-4">
-              🎮 Game Lobby
+      <div className="glass-card p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
+          <div className="flex-1 text-center sm:text-left">
+            <h2 className="text-xl font-bold text-white flex items-center justify-center sm:justify-start gap-3">
+              <span role="img" aria-label="joystick">🎮</span>
+              Game Lobby
             </h2>
-            <span className="text-white/70 text-base">{playersCount} / 5 players joined</span>
+            <p className="text-white/70 text-sm sm:text-base mt-1">{playersCount} / 5 players joined</p>
           </div>
-          {/* Right: Room Code and QR Invite (stacked on mobile) */}
-          <div className="flex flex-col w-full sm:w-auto mt-2 sm:mt-0">
-            <div className="flex flex-row items-center w-full sm:max-w-[180px]">
-              <span className="text-white/70 text-sm mr-2">Room Code:</span>
+          <div className="flex items-center gap-2 sm:gap-4">
+            <div className="flex items-center bg-black/30 rounded-xl border border-diamond-400/30 px-3 py-2">
+              <span className="text-white/70 text-sm mr-2">Room:</span>
+              <span className="text-diamond-300 text-lg font-mono">{roomId}</span>
               <button
-                onClick={e => {
-                  triggerHaptic();
-                  handleCopyRoomInfo();
-                }}
-                className={`text-diamond-300 text-base font-mono bg-black/30 px-3 py-1 rounded-xl border border-diamond-400/30 shadow transition-all duration-200 focus:outline-none active:scale-95 w-full ${copySuccess ? 'bg-green-500/30 text-green-200' : 'hover:bg-white/10 hover:text-diamond-400'}`}
-                title={copySuccess ? 'Copied!' : 'Click to copy room code'}
-                style={{ borderRadius: '0.75rem', backdropFilter: 'blur(8px)', boxShadow: '0 4px 24px 0 rgba(0,0,0,0.08)' }}
+                onClick={handleCopyRoomInfo}
+                className="ml-3 text-white/80 hover:text-white transition-colors duration-200"
+                title={copySuccess ? 'Copied!' : 'Copy room info'}
               >
-                {roomId} {copySuccess ? '✅' : ''}
+                {copySuccess ? <CheckIcon /> : <ClipboardIcon />}
               </button>
             </div>
-            {/* QR Invite button below room code, full width on mobile */}
             {!networkInfo.isLocal && (
               <button
-                onClick={e => {
-                  triggerHaptic();
-                  setShowQR(true);
-                }}
-                className="glass-button text-base font-semibold mt-2 w-full sm:max-w-[180px]"
-                style={{ borderRadius: '0.75rem', backdropFilter: 'blur(8px)', boxShadow: '0 4px 24px 0 rgba(0,0,0,0.08)' }}
+                onClick={() => setShowQR(true)}
+                className="glass-button text-sm font-semibold flex items-center justify-center gap-2"
               >
-                📱 QR Invite
+                <QRIcon />
+                <span>QR Invite</span>
               </button>
             )}
           </div>
         </div>
 
-        {/* Bot Assignment & Start Game - no extra glass effect */}
-        <div className="mb-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-8 mb-4">
-            {/* Bot Assignment Control for non-admins only */}
-            {playersCount > 1 && !isHost && (
-              <div className="w-full sm:w-auto">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:gap-6 max-w-2xl mx-auto">
-                  <div className="flex flex-row items-center gap-4 flex-1">
-                    <div className="flex items-center space-x-2">
-                      <button
-                        className="glass-button flex items-center justify-center gap-2 text-white/80 text-sm font-medium px-4 py-2 border border-diamond-400/20 shadow w-full sm:w-[180px]"
-                        style={{
-                          borderRadius: '0.75rem',
-                          backdropFilter: 'blur(8px)',
-                          boxShadow: '0 4px 24px 0 rgba(0,0,0,0.08)',
-                          pointerEvents: 'none',
-                          cursor: 'default',
-                          opacity: 0.7
-                        }}
-                        title={botAssignmentEnabled ? 'Bot Replace ON' : 'Bot Replace OFF'}
-                        tabIndex={-1}
-                      >
-                        <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${
-                          botAssignmentEnabled
-                            ? 'bg-green-400 shadow-lg shadow-green-400/50 animate-pulse'
-                            : 'bg-orange-400 shadow-lg shadow-orange-400/50'
-                        }`} />
-                        <span style={{ display: 'inline-block', width: '100px', textAlign: 'center', whiteSpace: 'nowrap' }}>
-                          {botAssignmentEnabled ? 'Bot Replace ON' : 'Bot Replace OFF'}
-                        </span>
-                      </button>
-                    </div>
-                  </div>
-                  {/* No description shown */}
-                </div>
-              </div>
-            )}
-            {/* LAN Info removed from main lobby UI */}
-          </div>
-
-          {/* Start Game section - visually grouped and centered */}
-          {isHost && (
-            <div className="space-y-6 mt-6 flex flex-col items-center justify-center">
-              {/* Bot Replace button above Start Game for admins */}
+        <div className="mt-6">
+          {isHost ? (
+            <div className="space-y-6 flex flex-col items-center">
               {playersCount > 1 && (
-                <button
-                  onClick={() => {
-                    triggerHaptic();
-                    const newValue = !botAssignmentEnabled;
-                    onToggleBotAssignment(newValue);
-                  }}
-                  className="glass-button flex items-center justify-center gap-2 text-white/80 text-sm font-medium px-4 py-2 border border-diamond-400/20 shadow w-full sm:w-[180px] transition-all duration-200 focus:outline-none active:scale-95"
-                  style={{ borderRadius: '0.75rem', backdropFilter: 'blur(8px)', boxShadow: '0 4px 24px 0 rgba(0,0,0,0.08)' }}
-                  title={botAssignmentEnabled ? 'Turn Bot Replace OFF' : 'Turn Bot Replace ON'}
-                >
-                  <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${
-                    botAssignmentEnabled
-                      ? 'bg-green-400 shadow-lg shadow-green-400/50 animate-pulse'
-                      : 'bg-orange-400 shadow-lg shadow-orange-400/50'
-                  }`} />
-                  <span style={{ display: 'inline-block', width: '100px', textAlign: 'center', whiteSpace: 'nowrap' }}>
-                    {botAssignmentEnabled ? 'Bot Replace ON' : 'Bot Replace OFF'}
-                  </span>
-                </button>
+                <ToggleButton
+                  label="Bot Replacement"
+                  enabled={botAssignmentEnabled}
+                  onToggle={onToggleBotAssignment}
+                />
               )}
-              {playersCount === 1 ? (
-                <>
-                  <button
-                    onClick={e => {
-                      triggerHaptic();
-                      onStartGame();
-                    }}
-                    className="glass-button text-xl px-8 py-4 !bg-diamond-500/80 hover:!bg-diamond-500/90 font-bold shadow-lg w-full sm:w-auto"
-                  >
-                    Start Solo Game
-                  </button>
-                  <p className="text-white/60 text-base mt-4 text-center">
-                    Play against <span className="font-bold text-diamond-300">4 AI opponents</span> for strategic solo gameplay
-                  </p>
-                </>
-              ) : (
-                <>
-                  <button
-                    onClick={e => {
-                      triggerHaptic();
-                      onStartGame();
-                    }}
-                    className="glass-button text-xl px-8 py-4 !bg-diamond-500/80 hover:!bg-diamond-500/90 font-bold shadow-lg w-full sm:w-auto"
-                  >
-                    Start Multiplayer Game
-                  </button>
-                  <p className="text-white/60 text-base mt-4 text-center">
-                    Playing with <span className="font-bold text-diamond-300">{playersCount} human players</span>
-                    {playersCount < 5 && <span> + <span className="font-bold text-diamond-300">{5 - playersCount} AI opponents</span></span>}
-                  </p>
-                </>
+              <StartGameButton playersCount={playersCount} onStart={onStartGame} />
+            </div>
+          ) : (
+            <div className="text-center text-white/80">
+              <p>Waiting for the host to start the game...</p>
+              {playersCount > 1 && (
+                <div className="mt-4 flex justify-center">
+                  <div className="flex items-center gap-2 text-sm bg-black/20 px-3 py-1.5 rounded-full">
+                    <div className={`w-2.5 h-2.5 rounded-full ${botAssignmentEnabled ? 'bg-green-400' : 'bg-orange-400'}`} />
+                    <span>Bot Replacement is {botAssignmentEnabled ? 'ON' : 'OFF'}</span>
+                  </div>
+                </div>
               )}
             </div>
           )}
         </div>
       </div>
 
-      {/* QR Code Modal Popup */}
       {showQR && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center z-50 p-4" onClick={() => setShowQR(false)}>
-          <div className="glass-card max-w-md w-full p-6 text-center animate-scale-in" onClick={e => e.stopPropagation()}>
-            <h3 className="text-xl font-bold text-white mb-4">📱 Lobby Invite QR Code</h3>
-            {qrLoading ? (
-              <div className="w-64 h-64 bg-white/10 rounded-xl flex items-center justify-center">
-                <div className="animate-spin w-8 h-8 border-2 border-white border-t-transparent rounded-full"></div>
-              </div>
-            ) : qrDataUrl ? (
-              <div className="bg-white p-4 rounded-xl mb-4 inline-block">
-                <img src={qrDataUrl} alt="QR Code for Lobby Invite" className="w-64 h-64 mx-auto" />
-              </div>
-            ) : (
-              <div className="w-64 h-64 bg-white/10 rounded-xl flex items-center justify-center text-white/50 text-xs">
-                QR generation failed
-              </div>
-            )}
-            {/* LAN URL below QR code */}
-            {!networkInfo.isLocal && (
-              <div className="text-xs text-white/70 mb-4">
-                LAN URL: <span className="font-mono text-diamond-300">{networkInfo.frontendURL}</span>
-              </div>
-            )}
-            <p className="text-white/70 text-sm mb-4">
-              Scan this QR code to join this King of Diamonds lobby
-            </p>
-            <button onClick={e => { triggerHaptic(); setShowQR(false); }} className="glass-button w-full">
-              Return to Lobby
-            </button>
-          </div>
-        </div>
+        <QRCodeModal 
+          qrDataUrl={qrDataUrl} 
+          qrLoading={qrLoading} 
+          frontendURL={networkInfo.frontendURL} 
+          onClose={() => setShowQR(false)} 
+        />
       )}
     </>
   );
 });
+
+const StartGameButton: React.FC<{ playersCount: number; onStart: () => void; }> = ({ playersCount, onStart }) => (
+  <div className="text-center">
+    <button
+      onClick={() => { triggerHaptic(); onStart(); }}
+      className="glass-button text-lg px-8 py-4 !bg-diamond-500/80 hover:!bg-diamond-500/90 font-bold shadow-lg w-full sm:w-auto"
+    >
+      {playersCount === 1 ? 'Start Solo Game' : 'Start Multiplayer Game'}
+    </button>
+    <p className="text-white/60 text-sm mt-3">
+      {playersCount === 1 ? (
+        <>Play against <span className="font-bold text-diamond-300">4 AI opponents</span></>
+      ) : (
+        <>
+          With <span className="font-bold text-diamond-300">{playersCount} human players</span>
+          {playersCount < 5 && <> + <span className="font-bold text-diamond-300">{5 - playersCount} AI</span></>}
+        </>
+      )}
+    </p>
+  </div>
+);
+
+const ToggleButton: React.FC<{ label: string; enabled: boolean; onToggle: (enabled: boolean) => void; }> = ({ label, enabled, onToggle }) => (
+  <div className="flex items-center justify-center gap-3">
+    <span className="text-white/80 text-sm font-medium">{label}</span>
+    <button
+      onClick={() => { triggerHaptic(); onToggle(!enabled); }}
+      className={`relative inline-flex items-center h-6 rounded-full w-11 transition-colors duration-200 focus:outline-none ${enabled ? 'bg-green-500' : 'bg-gray-600'}`}
+    >
+      <span
+        className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform duration-200 ${enabled ? 'translate-x-6' : 'translate-x-1'}`}
+      />
+    </button>
+  </div>
+);
+
+const QRCodeModal: React.FC<{ qrDataUrl: string; qrLoading: boolean; frontendURL: string; onClose: () => void; }> = ({ qrDataUrl, qrLoading, frontendURL, onClose }) => (
+  <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50 p-4" onClick={onClose}>
+    <div className="glass-card max-w-sm w-full p-6 text-center animate-scale-in" onClick={e => e.stopPropagation()}>
+      <h3 className="text-xl font-bold text-white mb-4">📱 Invite via QR</h3>
+      <div className="bg-white p-4 rounded-xl mb-4 inline-block shadow-lg">
+        {qrLoading ? (
+          <div className="w-48 h-48 flex items-center justify-center">
+            <div className="animate-spin w-8 h-8 border-2 border-gray-400 border-t-transparent rounded-full"></div>
+          </div>
+        ) : qrDataUrl ? (
+          <img src={qrDataUrl} alt="Lobby QR Code" className="w-48 h-48 mx-auto" />
+        ) : (
+          <div className="w-48 h-48 flex items-center justify-center text-gray-500 text-xs">
+            QR generation failed
+          </div>
+        )}
+      </div>
+      {frontendURL && (
+        <div className="text-xs text-white/70 mb-4">
+          LAN: <span className="font-mono text-diamond-300">{frontendURL}</span>
+        </div>
+      )}
+      <p className="text-white/70 text-sm mb-4">Scan to join the lobby instantly.</p>
+      <button onClick={() => { triggerHaptic(); onClose(); }} className="glass-button w-full">
+        Close
+      </button>
+    </div>
+  </div>
+);
+
+// SVG Icons for better visuals
+const ClipboardIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+  </svg>
+);
+
+const CheckIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+  </svg>
+);
+
+const QRIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+  </svg>
+);

@@ -1,4 +1,5 @@
 import React, { memo } from 'react';
+import { triggerHaptic } from '../utils/haptics';
 import type { Player, RoundResult } from '../types/game';
 
 interface LiveLeaderboardProps {
@@ -17,21 +18,27 @@ export const LiveLeaderboard: React.FC<LiveLeaderboardProps> = memo(({
   onLeaveRoom
 }) => {
   
-  // Function to calculate point changes for a specific player across all rounds
+  // Function to calculate net point changes for a specific player across all rounds
   const getPlayerPointHistory = (playerName: string): number[] => {
-    const pointChanges: number[] = [];
-    roundHistory.forEach(round => {
-      const playerChoice = round.choices.find(choice => choice.name === playerName);
-      if (playerChoice) {
-        // Calculate total loss for this round
-        const totalLoss = playerChoice.pointLosses 
-          ? playerChoice.pointLosses.reduce((sum, loss) => sum + loss.points, 0)
-          : 0;
-        // Use backend value directly
-        pointChanges.push(totalLoss);
+    // Gather the player's score at the end of each round
+    const scores: number[] = [];
+    roundHistory.forEach((round) => {
+      const player = round.players?.find((p) => p.name === playerName);
+      if (player) {
+        scores.push(player.score);
       }
     });
-    return pointChanges;
+    // Calculate the difference between each round (net change per round)
+    const pointChanges: number[] = [];
+    for (let i = 0; i < scores.length; i++) {
+      if (i === 0) {
+        pointChanges.push(scores[0]); // First round, show initial score (should be 0 or first gain/loss)
+      } else {
+        pointChanges.push(scores[i] - scores[i - 1]);
+      }
+    }
+    // Always show 0 for rounds with no change
+    return pointChanges.map(val => val === undefined ? 0 : val);
   };
   return (
     <div className="glass-card p-6">
@@ -39,10 +46,14 @@ export const LiveLeaderboard: React.FC<LiveLeaderboardProps> = memo(({
         <h3 className="text-xl font-bold text-white">🏆 Live Leaderboard</h3>
         {onLeaveRoom && (
           <button
-            onClick={onLeaveRoom}
-            className="glass-button px-4 py-2 !bg-red-500/20 hover:!bg-red-500/30 text-sm"
+            onClick={() => { triggerHaptic(); onLeaveRoom(); }}
+            className="glass-button text-sm font-semibold flex items-center justify-center gap-2 !bg-red-500/20 hover:!bg-red-500/40 ml-2"
+            title="Leave Room"
           >
-            Leave Room
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H7a2 2 0 01-2-2V7a2 2 0 012-2h4a2 2 0 012 2v1" />
+            </svg>
+            <span>Leave</span>
           </button>
         )}
       </div>
@@ -78,13 +89,11 @@ export const LiveLeaderboard: React.FC<LiveLeaderboardProps> = memo(({
                 .findIndex(p => p.id === player.id);
             }
             
-            // Get player's point history and filter out zeros (no point change)
-            const pointHistory = getPlayerPointHistory(player.name).filter(change => change !== 0);
 
-            // Calculate correct score from history if needed
-            const calculatedScore = pointHistory.reduce((acc, val) => acc + val, 0);
-            // Use backend score if negative, otherwise use calculated
-            const displayScore = player.score <= 0 ? player.score : calculatedScore;
+            // Get player's point history (net change per round, including 0s)
+            const pointHistory = getPlayerPointHistory(player.name);
+            // Use backend score for display
+            const displayScore = player.score;
 
             return (
               <div

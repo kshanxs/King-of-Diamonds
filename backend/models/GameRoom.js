@@ -589,6 +589,13 @@ class GameRoom {
 
     winner = this.applyGameRules(playersWithChoices, target, winner, pointLosses);
     this.checkEliminations();
+    // Ensure every player who made a choice but did not lose points gets a 0-point entry
+    playersWithChoices.forEach(player => {
+      const lossesArr = pointLosses.get(player.id).losses;
+      if (lossesArr.length === 0) {
+        lossesArr.push({ reason: 'No point loss', points: 0 });
+      }
+    });
     this.recordRoundResult(activePlayers, playersWithChoices, average, target, winner, timeoutPlayers, eliminatedByTimeout, pointLosses);
     this.checkGameEnd();
   }

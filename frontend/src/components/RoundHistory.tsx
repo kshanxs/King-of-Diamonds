@@ -61,7 +61,7 @@ export const RoundHistory: React.FC<RoundHistoryProps> = ({ roundHistory }) => {
                               {choice.pointLosses.map((loss, lossIndex) => (
                                 <div key={lossIndex} className="flex justify-between items-center text-xs">
                                   <span className="text-red-300">{loss.reason}</span>
-                                  <span className="text-red-400 font-semibold">-{loss.points}</span>
+                                  <span className="text-red-400 font-semibold">{loss.points > 0 ? `-${loss.points}` : loss.points}</span>
                                 </div>
                               ))}
                             </div>

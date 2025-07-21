@@ -100,7 +100,6 @@ export const GameRoom: React.FC<GameRoomProps> = ({ roomId, playerId, onLeaveRoo
             roomId={roomId}
             botAssignmentEnabled={botAssignmentEnabled}
             onStartGame={handleStartGame}
-            onLeaveRoom={handleLeaveRoom}
             onToggleBotAssignment={handleToggleBotAssignment}
           />
         )}

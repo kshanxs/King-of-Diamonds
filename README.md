@@ -334,8 +334,10 @@ For detailed instructions on setting up LAN multiplayer with automatic network d
 **Quick LAN Setup:**
 
 ```bash
-# Run the automated LAN setup script
+# 🏠 For Mac/Linux:
 ./start-lan.sh
+# 🪟 For Windows:
+start-lan-win.bat
 ```
 
 **Manual Setup:**

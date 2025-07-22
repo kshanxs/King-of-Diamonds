@@ -53,6 +53,7 @@ Welcome to the comprehensive documentation for King of Diamonds - a real-time mu
 - **AI Bots**: Intelligent bot opponents with adaptive strategies
 - **LAN Support**: Local network multiplayer with automatic discovery
 - **Responsive Design**: Works on desktop, tablet, and mobile devices
+- **Bot Assignment Toggle**: Host can enable/disable bot assignment for leaving players.
 
 ### Technical Features
 
@@ -60,6 +61,7 @@ Welcome to the comprehensive documentation for King of Diamonds - a real-time mu
 - **Node.js Backend**: Express + Socket.io server
 - **Docker Support**: Containerized deployment options
 - **QR Code Integration**: Easy room sharing via QR codes
+- **Health Monitoring**: Backend health check endpoint.
 
 ## 📊 Project Status
 

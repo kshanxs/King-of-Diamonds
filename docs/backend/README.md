@@ -152,6 +152,9 @@ socket.emit('startGame', { roomId })
 
 // Mark player as ready for next round
 socket.emit('playerReady', { roomId, playerId })
+
+// Toggle bot assignment
+socket.emit('toggleBotAssignment', { roomId, playerId, enabled })
 ```
 
 #### Server → Client Events
@@ -201,6 +204,9 @@ socket.emit('readyUpdate', {
 
 // Round countdown
 socket.emit('nextRoundCountdown', seconds)
+
+// Bot assignment changed
+socket.emit('botAssignmentChanged', { enabled })
 
 // Error handling
 socket.emit('error', { message })

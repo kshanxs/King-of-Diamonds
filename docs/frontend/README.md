@@ -68,7 +68,7 @@ src/
 ### Real-time Gameplay
 
 - **Socket.io Integration**: Live game state synchronization
-- **Smart Round Progression**: 10-second countdown with early start when all players ready
+- **Smart Round Progression**: 15-second countdown with early start when all players ready
 - **Player Status Tracking**: Real-time updates on who's choosing, ready, or connected
 
 ### Modern UI/UX

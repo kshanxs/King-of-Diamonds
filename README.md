@@ -111,53 +111,41 @@ King of Diamonds/
 
 ### 🎮 Game Modes
 
-- **Solo Mode**: Play against 4 intelligent AI opponents with unique playing card personalities
-- **Multiplayer Mode**: Create rooms and play with friends (up to 5 players)
-- **Auto-fill**: Rooms automatically fill with AI bots to maintain 5-player games
+- **Solo Mode**: Play against 4 intelligent AI opponents with unique playing card personalities.
+- **Multiplayer Mode**: Create rooms and play with friends (up to 5 players).
+- **Auto-fill**: Rooms automatically fill with AI bots to maintain 5-player games.
+- **Bot Assignment Toggle**: The host can enable or disable automatic bot assignment for players who leave mid-game.
 
 ### 🧠 AI Opponents
 
 Face off against strategically named AI opponents with advanced intelligence:
 
-- **Kings**: King of Hearts, King of Spades, King of Diamonds, King of Clubs
-- **Queens**: Queen of Diamonds, Queen of Hearts, Queen of Clubs, Queen of Spades  
-- **Jacks**: Jack of Hearts, Jack of Diamonds, Jack of Spades, Jack of Clubs
-- **Aces**: Ace of Hearts, Ace of Diamonds, Ace of Spades, Ace of Clubs
-
-Each bot has unique personalities and strategic behaviors:
-
-- **Kings**: Aggressive risk-takers (Risk: 0.8, Calculation: 0.6)
-- **Queens**: Balanced calculators with strong mathematical focus (Risk: 0.5, Calculation: 0.8)
-- **Jacks**: Unpredictable wildcards (Risk: 0.7, Calculation: 0.4)
-- **Aces**: Mathematical precision experts (Risk: 0.3, Calculation: 0.9)
+- **Kings**: Aggressive risk-takers.
+- **Queens**: Balanced calculators with a strong mathematical focus.
+- **Jacks**: Unpredictable wildcards.
+- **Aces**: Mathematical precision experts.
 
 ### ⚡ Real-time Features
 
-- **Live Synchronization**: Real-time updates across all players using Socket.io
-- **Smart Round Progression**: 10-second countdown with early start when all players ready
-- **Player Status Tracking**: See who's ready, who's choosing
-- **Copy Room Codes**: Easy room sharing with one-click copy
-
-### 🧪 Development & Testing
-
-- **Component Testing**: Test individual components during development
-- **Mock Data Support**: Pre-configured test scenarios for development
-- **Browser DevTools**: Built-in debugging and testing capabilities
+- **Live Synchronization**: Real-time updates across all players using Socket.io.
+- **Smart Round Progression**: 15-second countdown with an early start when all players are ready.
+- **Player Status Tracking**: See who's ready, who's choosing, and who has disconnected.
+- **Copy Room Codes**: Easy room sharing with one-click copy.
 
 ### 🌐 LAN Multiplayer
 
-- **Network Discovery**: Automatic detection of game servers on local network
-- **QR Code Connection**: Generate QR codes for easy mobile device connection
-- **Cross-Platform**: Play on different devices connected to same WiFi
-- **Health Monitoring**: Real-time server status and connection quality
+- **Network Discovery**: Automatic detection of game servers on the local network.
+- **QR Code Connection**: Generate QR codes for easy mobile device connection.
+- **Cross-Platform**: Play on different devices connected to the same WiFi.
+- **Health Monitoring**: Real-time server status and connection quality via a `/health` endpoint.
 
 ### 🎨 Modern UI/UX
 
-- **Glassmorphism Design**: Beautiful, modern card-table aesthetic
-- **Playing Card Theme**: Card-inspired background and visual elements
-- **Responsive Design**: Works perfectly on desktop and mobile
-- **Real-time Animations**: Smooth transitions and visual feedback
-- **Live Leaderboard**: Dynamic sorting and real-time updates
+- **Glassmorphism Design**: Beautiful, modern card-table aesthetic.
+- **Playing Card Theme**: Card-inspired background and visual elements.
+- **Responsive Design**: Works perfectly on desktop and mobile.
+- **Real-time Animations**: Smooth transitions and visual feedback.
+- **Live Leaderboard**: Dynamic sorting and real-time updates.
 
 ## 🎲 Core Game Mechanics
 

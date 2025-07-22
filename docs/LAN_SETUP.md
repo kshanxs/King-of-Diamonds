@@ -37,7 +37,6 @@ npm run dev -- --host 0.0.0.0
 
 - **🔍 Auto Network Discovery**: Automatically scan for games on your network
 - **📋 Easy Sharing**: Copy/paste URLs and QR codes for mobile devices
-- **🧪 Component Testing**: Visit `/test` for comprehensive UI testing
 - **⚡ Real-time Sync**: All game state synced across devices
 - **🏠 Offline Play**: No internet required - works purely on local network
 

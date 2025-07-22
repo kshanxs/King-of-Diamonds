@@ -40,6 +40,7 @@ The King of Diamonds game features a simple but effective room-based matchmaking
 - **Instant Availability**: No waiting for additional human players
 - **Playing Card Names**: Each bot has a unique playing card identity
 - **Balanced Teams**: AI ensures competitive gameplay regardless of human player count
+- **Bot Assignment Toggle**: The host can enable or disable automatic bot assignment for players who leave mid-game.
 
 ### Bot Pool
 The system includes 16 available AI opponents:
@@ -82,7 +83,7 @@ The system includes 16 available AI opponents:
 - **Graceful Disconnects**: Players can rejoin active games
 - **Host Migration**: Automatic host reassignment if host leaves
 - **Game Continuation**: Games continue with remaining players
-- **Bot Substitution**: Disconnected players marked as "left"
+- **Bot Substitution**: Disconnected players are marked as "left" and can be replaced by a bot.
 
 ## 🎯 Matchmaking Flow
 

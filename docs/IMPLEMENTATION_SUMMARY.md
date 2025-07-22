@@ -17,6 +17,8 @@ King of Diamonds is a fully-implemented multiplayer strategy game inspired by Al
 - ✅ **Modular Architecture**: Organized code structure with separation of concerns
 - ✅ **Error Handling**: Comprehensive error management and validation
 - ✅ **Rate Limiting**: API protection and abuse prevention
+- ✅ **Health Monitoring**: `/health` endpoint for server status.
+- ✅ **Graceful Shutdown**: Handles `SIGTERM` and `SIGINT` signals.
 
 #### Frontend Implementation
 - ✅ **React 18 + TypeScript**: Modern type-safe frontend development
@@ -37,6 +39,10 @@ King of Diamonds is a fully-implemented multiplayer strategy game inspired by Al
 - ✅ **Player Management**: Join/leave handling during active games
 - ✅ **Round System**: Complete round lifecycle with timing
 - ✅ **Scoring System**: Point tracking and elimination (-10 points)
+- ✅ **Bot Assignment Toggle**: Host can enable/disable bot assignment for leaving players.
+- ✅ **Player Ready Button**: Next round starts early if all players are ready.
+- ✅ **LAN Network Discovery**: Automatic discovery of game servers on the local network.
+- ✅ **QR Code Connection**: Connect to a game by scanning a QR code.
 
 ## 🏗️ Technical Architecture
 
@@ -89,7 +95,7 @@ frontend/src/
 6. **Victory**: Last player standing wins
 
 ### Progressive Rules System
-1. **Always Active**: Timeout penalty (-2 points)
+1. **Always Active**: Timeout penalty (-2 points, 2 consecutive timeouts cause elimination)
 2. **After 1 Elimination**: Duplicate number penalty (-1 point)
 3. **After 2 Eliminations**: Exact target bonus/penalty system
 4. **After 3 Eliminations**: Zero-hundred gambit special rule

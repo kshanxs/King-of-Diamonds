@@ -234,3 +234,6 @@ storybook-static
 # Keep necessary config
 !.vscode/settings.json
 !.vscode/extensions.json
+
+# YoYo AI version control directory
+.yoyo/

@@ -27,16 +27,35 @@ export const GamePlaying: React.FC<GamePlayingProps> = ({
 }) => {
   const [showNumberGrid, setShowNumberGrid] = React.useState(true);
   const [isGridExiting, setIsGridExiting] = React.useState(false);
+  const pendingChoiceRef = React.useRef<number | null>(null);
 
   // Handle number selection with exit animation
   const handleNumberSelect = (number: number) => {
     setIsGridExiting(true);
+    pendingChoiceRef.current = number;
     // Delay the actual selection to allow exit animation
     setTimeout(() => {
-      onNumberSelect(number);
-      setShowNumberGrid(false);
+      // Only send the choice if:
+      // 1. We still have a pending choice (not cancelled by unmount)
+      // 2. selectedNumber is still null (new round didn't start)
+      // 3. The pending choice matches what was selected (no newer selection)
+      if (pendingChoiceRef.current === number && selectedNumber === null) {
+        onNumberSelect(number);
+        setShowNumberGrid(false);
+      } else {
+        // Selection was cancelled - reset the exiting state
+        setIsGridExiting(false);
+      }
+      pendingChoiceRef.current = null;
     }, 500); // Wait for exit animation to complete
   };
+
+  // Cleanup pending choice on unmount
+  React.useEffect(() => {
+    return () => {
+      pendingChoiceRef.current = null;
+    };
+  }, []);
 
   // Reset grid state when round changes or selection is cleared
   React.useEffect(() => {
